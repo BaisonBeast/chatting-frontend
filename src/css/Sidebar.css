@@ -1,7 +1,7 @@
 .sidebar {
     width: 20vw;
     height: 80vh;
-    background: pink;
+    background: #EEEDEB;
 }
 
 .navigation {
@@ -9,22 +9,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px;
-    border-bottom: 1px solid grey;
+    border-bottom: 1px solid #E7F0DC;
 }
 
 .sidebar-option {
     display: flex;
     align-items: center;
 }
-
-.mar {
-    margin-right: 20px;
-}
-
-.pointer {
-    cursor: pointer;
-}
-
 
 .search {
     width: 97%;
@@ -56,7 +47,12 @@
     justify-content: space-between;
     padding-left: 10px;
     padding-right: 10px;
-    border-bottom: 1px solid grey;
+    border-bottom: 1px solid #E7F0DC;
+    height: 55px;
+}
+
+.content-item:hover {
+    background-color: #BBE9FF;
 }
 
 .content-user {
