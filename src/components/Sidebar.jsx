@@ -4,41 +4,63 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { MdOutlineMessage } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import moment from 'moment';
 
-const Sidebar = () => {
+const Sidebar = ({setInputBox}) => {
 
-    const people = [
-        { id: 1, name: 'Alice' },
-        { id: 2, name: 'Bob' },
-        { id: 3, name: 'Charlie' },
-    ];
+    const [chatList, setChatList] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(()=> {
+        fetchAllChatList();
+    }, []);
+
+    const fetchAllChatList = async () => {
+        const data = await axios.get('http://localhost:8080/api/chat/getAllChats');
+        setChatList(data.data);
+    }
+
+    const filteredChats = chatList.filter(chat =>
+        chat.chatName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleInputBox = () => {
+        setInputBox(prev => !prev);
+    }
 
   return (
     <div className='sidebar'>
         <nav className='navigation'>
             <HiMiniUserCircle size={40} color='white' className='pointer'/>
             <div className='sidebar-option'>
-                <MdOutlineMessage size={20} className='mar pointer'/>
+                <MdOutlineMessage size={20} className='mar pointer' onClick={handleInputBox}/>
                 <BsThreeDotsVertical size={20} className='pointer'/>
             </div>
         </nav>
 
         <div className='search'>
             <CiSearch />
-            <input type='text' placeholder='Search' />
+            <input 
+                type='text' 
+                placeholder='Search' 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                value={searchTerm}
+            />
         </div>
 
         <div className='content'>
             {
-                people.map(person => {
+                filteredChats.map((chat, id) => {
                     return (
-                    <Link to={`/chat/${person.id}`} key={person.id} style={{ textDecoration: 'none', color: 'black' }}>
+                    <Link to={`${chat.chatId}`} key={id} style={{ textDecoration: 'none', color: 'black' }}>
                         <div className='content-item pointer'>
                             <div className='content-user'>
                                 <HiMiniUserCircle size={40} color='white' className='pointer'/>
-                                <p>{person.name}</p>
+                                <p>{chat.chatName}</p>
                             </div>
-                        <p>2:12</p>
+                        <p>{moment(chat.chatTime).format('LT')}</p>
                         </div>
                     </Link>
                     )

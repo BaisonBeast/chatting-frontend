@@ -20,3 +20,19 @@
 .pointer {
   cursor: pointer;
 }
+
+.visible {
+  display: static;
+}
+
+.invisible {
+  display: none;
+}
+
+.blur {
+  opacity: 0.5;
+}
+
+.noblur {
+  opacity: 2;
+}
