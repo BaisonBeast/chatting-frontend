@@ -4,14 +4,14 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoIosAttach } from "react-icons/io";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { CiMicrophoneOn } from "react-icons/ci";
-// import { io } from 'socket.io-client';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import moment from 'moment';
+import { io } from 'socket.io-client';
 
-const API_URL = 'http://localhost:8080';
-// const socket = io(API_URL);
+const API_URL = 'http://localhost:5000';
+const socket = io(API_URL);
 
 const ChatArea = () => {
   const { chatId } = useParams();
@@ -24,13 +24,14 @@ const ChatArea = () => {
 
     // socket.emit('joinChat', chatId);
 
-    // socket.on('receiveMessage', (message) => {
-    //   setMessages((prevMessages) => [...prevMessages, message]);
-    // });
+    socket.on('receiveMessage', (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
 
-    // return () => {
-    //   socket.off('receiveMessage');
-    // };
+    return () => {
+      socket.off('receiveMessage');
+      socket.emit('leaveChat', chatId);
+    };
   }, [chatId]);
 
   const fetchMessages = async () => {
@@ -54,8 +55,9 @@ const ChatArea = () => {
 
         try {
           const sentMessage = await axios.post(`${API_URL}/api/messages/newMessage`, messageData);
-          console.log(sentMessage);
-          // socket.emit('sendMessage', sentMessage.data);
+          setMessages(sentMessage.data);
+          console.log(sentMessage.data)
+          socket.emit('sendMessage', sentMessage.data);
           setNewMessage('');
         } catch (error) {
           console.error('Error sending message:', error);

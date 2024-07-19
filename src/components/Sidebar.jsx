@@ -8,9 +8,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 
-const Sidebar = ({setInputBox}) => {
+const API_URL = 'http://localhost:5000'; 
 
-    const [chatList, setChatList] = useState([]);
+const Sidebar = ({setInputBox, setChatList, chatList}) => {
+
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(()=> {
@@ -18,7 +19,7 @@ const Sidebar = ({setInputBox}) => {
     }, []);
 
     const fetchAllChatList = async () => {
-        const data = await axios.get('http://localhost:8080/api/chat/getAllChats');
+        const data = await axios.get(`${API_URL}/api/chat/getAllChats`);
         setChatList(data.data);
     }
 
@@ -71,4 +72,4 @@ const Sidebar = ({setInputBox}) => {
   )
 }
 
-export default Sidebar
+export default Sidebar;

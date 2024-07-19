@@ -2,19 +2,22 @@ import '../css/InputBox.css';
 import { useState } from "react";
 import axios from "axios";
 
-export const InputBox = ({inputBox, setInputBox}) => {
+const API_URL = 'http://localhost:5000'; 
+
+
+export const InputBox = ({inputBox, setInputBox, setChatList}) => {
     const [chatName, setChatName] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (chatName.trim()) {
         try {
-            const response = await axios.post("http://localhost:8080/api/chat/createChat", {
+            const response = await axios.post(`${API_URL}/api/chat/createChat`, {
             chatName,
         });
-        console.log(response);
         setChatName("");
         setInputBox(prev => !prev);
+        setChatList(prev => [...prev, response.data]);
     } catch (error) {
         console.error("Error creating new chat:", error);
     }

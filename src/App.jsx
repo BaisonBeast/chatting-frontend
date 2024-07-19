@@ -8,13 +8,14 @@ import { useState } from 'react';
 
 function App() {
 
-  const [inputBox, setInputBox] = useState(false);
+    const [chatList, setChatList] = useState([]);
+    const [inputBox, setInputBox] = useState(false);
 
   return (
     
       <div className={`app`}>
-        <InputBox inputBox={inputBox} setInputBox={setInputBox}/>
-        <Sidebar setInputBox={setInputBox} inputBox={inputBox} />
+        <InputBox inputBox={inputBox} setInputBox={setInputBox} setChatList={setChatList}/>
+        <Sidebar setInputBox={setInputBox}  chatList={chatList} setChatList={setChatList}/>
         <Routes>
           <Route path='/' element={<BlankChat />} />
           <Route path='/:chatId' element={<ChatArea />} />
