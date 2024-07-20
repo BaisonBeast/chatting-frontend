@@ -24,6 +24,10 @@ export const InputBox = () => {
     }
     }
   };
+
+  const handleCancel = () => {
+    setInputBox(prev => !prev)
+  }
   return (
     <div className={`inputBox ${inputBox ? 'visible': 'invisible'}`}>
         <form className="new-chat-form" onSubmit={handleSubmit}>
@@ -39,7 +43,7 @@ export const InputBox = () => {
             <button type="submit" className="new-chat-button margin create">
                 Create
             </button>
-            <button className="new-chat-button margin cancel">
+            <button className="new-chat-button margin cancel" onClick={handleCancel}>
                 Cancel
             </button>
             </div>
