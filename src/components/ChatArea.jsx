@@ -11,7 +11,7 @@ import moment from 'moment';
 import { io } from 'socket.io-client';
 import useChatStore from '../store/useStore.js';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL;
 let socket;
 
 const ChatArea = () => {
@@ -107,7 +107,6 @@ const calculateDaysAgo = (isoDate) => {
         {
           messages?.messages?.map((message, id) => {
             const day = calculateDaysAgo(message.time);
-            console.log(day)
             return (
               <div key={id} className={`chat ${message.senderName === messages.name? 'right': 'left'}`}>
                 <p>{message.message}</p>
