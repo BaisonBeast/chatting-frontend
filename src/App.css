@@ -36,3 +36,7 @@
 .noblur {
   opacity: 2;
 }
+
+.highLight {
+  background-color: blue;
+}

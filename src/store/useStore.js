@@ -11,6 +11,9 @@ const useChatStore = create((set) => ({
         }
     })),
     setMessages: (messages) => set(() => ({ messages })),
+    deleteChatList: (chatId) => set((state) => ({ 
+        chatList: state.chatList.filter(chat => chat.chatId !== chatId)
+    })),
     addChat: (chat) => set((state) => ({ chatList: [...state.chatList, chat] })),
     setChatList: (chatList) => set(() => ({ chatList })),
     setInputBox: () => set((state) => ({inputBox: !state.inputBox}))

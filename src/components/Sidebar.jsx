@@ -9,7 +9,7 @@ import axios from 'axios';
 import moment from 'moment';
 import useChatStore from '../store/useStore';
 import { io } from 'socket.io-client';
-
+import { useParams } from 'react-router-dom';
 
 const API_URL = 'http://localhost:5000'; 
 let socket;
@@ -18,6 +18,7 @@ const Sidebar = () => {
 
     const { chatList, setChatList, setInputBox, addChat } = useChatStore();
     const [searchTerm, setSearchTerm] = useState('');
+    const { currentChatId } = useParams();
 
     useEffect(()=> {
         fetchAllChatList();
@@ -69,7 +70,7 @@ const Sidebar = () => {
                 filteredChats.map((chat, id) => {
                     return (
                     <Link to={`${chat.chatId}`} key={id} style={{ textDecoration: 'none', color: 'black' }}>
-                        <div className='content-item pointer'>
+                        <div className={`content-item pointer ${currentChatId === chat.chatId ? 'highLight': ''}`}>
                             <div className='content-user'>
                                 <HiMiniUserCircle size={40} color='white' className='pointer'/>
                                 <p>{chat.chatName}</p>

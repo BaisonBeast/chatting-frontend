@@ -4,20 +4,20 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoIosAttach } from "react-icons/io";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { CiMicrophoneOn } from "react-icons/ci";
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 import { io } from 'socket.io-client';
 import useChatStore from '../store/useStore.js';
 
-
 const API_URL = 'http://localhost:5000';
 let socket;
 
 const ChatArea = () => {
   const { chatId } = useParams();
-  const { messages, addMessage, setMessages } = useChatStore();
+  const [showMenu, setShowMenu] = useState(false);
+  const { messages, addMessage, setMessages, deleteChatList } = useChatStore();
   const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
@@ -66,6 +66,24 @@ const ChatArea = () => {
     }
   };
 
+  const handleDeleteChat = async () => {
+    try {
+        await axios.delete(`${API_URL}/api/chat/deleteChat/${chatId}`);
+        deleteChatList(chatId);
+        
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+    }
+}
+
+const calculateDaysAgo = (isoDate) => {
+  const pastDate = new Date(isoDate);
+  const currentDate = new Date();
+  const differenceInMs = currentDate - pastDate;
+  const differenceInDays = Math.floor(differenceInMs / (24 * 60 * 60 * 1000));
+  return differenceInDays;
+};
+
   return (
     <div className='chatArea'>
       <header className='header'>
@@ -73,18 +91,27 @@ const ChatArea = () => {
           <HiMiniUserCircle size={40} color='white' className='mar pointer hov'/>
           <p>{messages.name}</p>
         </div>
-        <div>
+        <div style={{position: 'relative'}}>
           <IoIosAttach size={25} className='mar pointer'/>
-          <BsThreeDotsVertical size={25} className='pointer'/>
+          <BsThreeDotsVertical size={25} className='pointer' onClick={() => setShowMenu(prev => !prev)}/>
+          {showMenu && (
+            <div className="menu">
+              <Link to='/' style={{ textDecoration: 'none', color: 'black' }}>
+                <button onClick={handleDeleteChat}>Delete Chat</button>
+              </Link>
+            </div>
+            )}
         </div>
       </header>
       <div className='chats'>
         {
           messages?.messages?.map((message, id) => {
+            const day = calculateDaysAgo(message.time);
+            console.log(day)
             return (
               <div key={id} className={`chat ${message.senderName === messages.name? 'right': 'left'}`}>
                 <p>{message.message}</p>
-                <h6>{moment(message.time).format('LT')}</h6>
+                <h6>{`${day === 0 ? 'Today at' : day === 1 ? 'Yesterday at' : `${day} days ago at`} ${moment(message.time).format('LT')}`}</h6>
               </div>
             )
           })
