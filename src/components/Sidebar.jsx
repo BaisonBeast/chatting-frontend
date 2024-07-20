@@ -7,15 +7,28 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
+import useChatStore from '../store/useStore';
+import { io } from 'socket.io-client';
+
 
 const API_URL = 'http://localhost:5000'; 
+let socket;
 
-const Sidebar = ({setInputBox, setChatList, chatList}) => {
+const Sidebar = () => {
 
+    const { chatList, setChatList, setInputBox, addChat } = useChatStore();
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(()=> {
         fetchAllChatList();
+        if(!socket)
+            socket = io(API_URL);
+        socket.on('cratedChat', (message) => {
+        addChat(message);
+        });
+        return () => {
+            socket.off('crateChat');
+        };
     }, []);
 
     const fetchAllChatList = async () => {
@@ -28,7 +41,7 @@ const Sidebar = ({setInputBox, setChatList, chatList}) => {
     );
 
     const handleInputBox = () => {
-        setInputBox(prev => !prev);
+        setInputBox();
     }
 
   return (

@@ -1,23 +1,25 @@
 import '../css/InputBox.css';
 import { useState } from "react";
+import useChatStore from '../store/useStore';
 import axios from "axios";
+
 
 const API_URL = 'http://localhost:5000'; 
 
-
-export const InputBox = ({inputBox, setInputBox, setChatList}) => {
+export const InputBox = () => {
     const [chatName, setChatName] = useState("");
+    const {setInputBox, inputBox} = useChatStore();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (chatName.trim()) {
         try {
-            const response = await axios.post(`${API_URL}/api/chat/createChat`, {
+            await axios.post(`${API_URL}/api/chat/createChat`, {
             chatName,
         });
         setChatName("");
-        setInputBox(prev => !prev);
-        setChatList(prev => [...prev, response.data]);
+        setInputBox();
     } catch (error) {
         console.error("Error creating new chat:", error);
     }
@@ -38,7 +40,7 @@ export const InputBox = ({inputBox, setInputBox, setChatList}) => {
             <button type="submit" className="new-chat-button margin create">
                 Create
             </button>
-            <button type="submit" className="new-chat-button margin cancel">
+            <button className="new-chat-button margin cancel">
                 Cancel
             </button>
             </div>

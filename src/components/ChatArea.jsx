@@ -9,23 +9,26 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 import { io } from 'socket.io-client';
+import useChatStore from '../store/useStore.js';
+
 
 const API_URL = 'http://localhost:5000';
-const socket = io(API_URL);
+let socket;
 
 const ChatArea = () => {
   const { chatId } = useParams();
-  const [messages, setMessages] = useState([]);
+  const { messages, addMessage, setMessages } = useChatStore();
   const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
-  
     fetchMessages();
+    if(!socket)
+      socket = io(API_URL);
 
-    // socket.emit('joinChat', chatId);
+    socket.emit('joinChat', chatId);
 
     socket.on('receiveMessage', (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
+      addMessage(message)
     });
 
     return () => {
@@ -54,11 +57,8 @@ const ChatArea = () => {
         };
 
         try {
-          const sentMessage = await axios.post(`${API_URL}/api/messages/newMessage`, messageData);
-          setMessages(sentMessage.data);
-          console.log(sentMessage.data)
-          socket.emit('sendMessage', sentMessage.data);
           setNewMessage('');
+          await axios.post(`${API_URL}/api/messages/newMessage`, messageData);
         } catch (error) {
           console.error('Error sending message:', error);
         }
