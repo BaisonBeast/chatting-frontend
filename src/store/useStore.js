@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 const useChatStore = create((set) => ({
+    user: localStorage.getItem('username') || null,
     messages: {},
     chatList: [],
     inputBox: false,
@@ -10,13 +11,14 @@ const useChatStore = create((set) => ({
             messages: [...state.messages.messages, newMessage]
         }
     })),
+    addChat: (chat) => set((state) => ({ chatList: [...state.chatList, chat] })),
     setMessages: (messages) => set(() => ({ messages })),
+    setUser: (user) => set(() => ({user})),
+    setChatList: (chatList) => set(() => ({ chatList })),
+    setInputBox: () => set((state) => ({inputBox: !state.inputBox})),
     deleteChatList: (chatId) => set((state) => ({ 
         chatList: state.chatList.filter(chat => chat.chatId !== chatId)
     })),
-    addChat: (chat) => set((state) => ({ chatList: [...state.chatList, chat] })),
-    setChatList: (chatList) => set(() => ({ chatList })),
-    setInputBox: () => set((state) => ({inputBox: !state.inputBox}))
 }));
 
 export default useChatStore;  

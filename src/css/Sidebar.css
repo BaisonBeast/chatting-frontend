@@ -15,7 +15,14 @@
 .sidebar-option {
     display: flex;
     align-items: center;
+    position: relative;
 }
+
+.abs {
+    top: 25px;
+    left: 45px;
+}
+
 
 .search {
     width: 97%;

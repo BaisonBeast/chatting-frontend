@@ -10,6 +10,8 @@ import axios from 'axios';
 import moment from 'moment';
 import { io } from 'socket.io-client';
 import useChatStore from '../store/useStore.js';
+import EmojiPicker from 'emoji-picker-react';
+import { AiOutlineClose } from "react-icons/ai";
 
 const API_URL = import.meta.env.VITE_API_URL;
 let socket;
@@ -17,8 +19,10 @@ let socket;
 const ChatArea = () => {
   const { chatId } = useParams();
   const [showMenu, setShowMenu] = useState(false);
-  const { messages, addMessage, setMessages, deleteChatList } = useChatStore();
+  const { messages, addMessage, setMessages, deleteChatList, user } = useChatStore();
+  const [showCrossIcon, setShowCrossIcon] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -52,7 +56,7 @@ const ChatArea = () => {
       if (newMessage.trim()) {
         const messageData = {
           chatId,
-          senderName: messages.name,
+          senderName: user,
           message: newMessage,
         };
 
@@ -70,11 +74,13 @@ const ChatArea = () => {
     try {
         await axios.delete(`${API_URL}/api/chat/deleteChat/${chatId}`);
         deleteChatList(chatId);
-        
     } catch (error) {
         console.error('Error deleting chat:', error);
     }
 }
+const onEmojiClick = (emojidata) => {
+  setNewMessage(prevMessage => prevMessage + emojidata.emoji);
+};
 
 const calculateDaysAgo = (isoDate) => {
   const pastDate = new Date(isoDate);
@@ -108,7 +114,7 @@ const calculateDaysAgo = (isoDate) => {
           messages?.messages?.map((message, id) => {
             const day = calculateDaysAgo(message.time);
             return (
-              <div key={id} className={`chat ${message.senderName === messages.name? 'right': 'left'}`}>
+              <div key={id} className={`chat ${message.senderName === user? 'right': 'left'}`}>
                 <p>{message.message}</p>
                 <h6>{`${day === 0 ? 'Today at' : day === 1 ? 'Yesterday at' : `${day} days ago at`} ${moment(message.time).format('LT')}`}</h6>
               </div>
@@ -117,9 +123,34 @@ const calculateDaysAgo = (isoDate) => {
         }
       </div>
       <footer className='footer'>
-        <MdOutlineEmojiEmotions className='pointer' size={25} color='#BACD92'/>
+      <MdOutlineEmojiEmotions 
+        className='pointer' 
+        size={25} 
+        color='#BACD92' 
+        onClick={() => {setShowEmojiPicker(prev => !prev); setShowCrossIcon(prev => !prev)}}
+      />
+        <div className='emoji-container'>
+          {
+            showCrossIcon && 
+              <AiOutlineClose 
+                className='close-icon' 
+                size={20} 
+                onClick={() => {setShowEmojiPicker(false); setShowCrossIcon(prev => !prev) }}
+              /> 
+          }
+          {
+            showEmojiPicker && 
+              <EmojiPicker 
+              onEmojiClick={onEmojiClick} 
+              height={350} 
+              width={300} 
+              skinTonesDisabled
+              />
+          }
+        </div>
         <input 
-          type='text' placeholder='Enter message' 
+          type='text' 
+          placeholder='Enter message' 
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleSendMessage}

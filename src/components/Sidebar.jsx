@@ -17,9 +17,11 @@ let socket;
 
 const Sidebar = () => {
 
-    const { chatList, setChatList, setInputBox, addChat } = useChatStore();
+    const { chatList, setChatList, setInputBox, addChat, setUser } = useChatStore();
     const [searchTerm, setSearchTerm] = useState('');
     const { currentChatId } = useParams();
+    const [showMenu, setShowMenu] = useState(false);
+    console.log(currentChatId)
 
     useEffect(()=> {
         fetchAllChatList();
@@ -46,13 +48,23 @@ const Sidebar = () => {
         setInputBox();
     }
 
+    const handleLogout = () => {
+        setUser(null);
+        localStorage.removeItem('username');
+    }
+
   return (
     <div className='sidebar'>
         <nav className='navigation'>
             <HiMiniUserCircle size={40} color='white' className='pointer'/>
             <div className='sidebar-option'>
-                <MdOutlineMessage size={20} className='mar pointer' onClick={handleInputBox}/>
-                <BsThreeDotsVertical size={20} className='pointer'/>
+                <MdOutlineMessage size={22} className='mar pointer' onClick={handleInputBox}/>
+                <BsThreeDotsVertical size={22} className='pointer' onClick={() => setShowMenu(prev => !prev)}/>
+                {showMenu && (
+                    <div className="menu abs">
+                    <button onClick={handleLogout}>Logout</button>
+                    </div>
+                )}
             </div>
         </nav>
 
