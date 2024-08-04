@@ -1,7 +1,7 @@
 .sidebar {
-    width: 20vw;
-    height: 80vh;
-    background: #EEEDEB;
+    width: 25vw;
+    height: 100vh;
+    background: #b3bab3;
 }
 
 .navigation {
@@ -10,6 +10,17 @@
     justify-content: space-between;
     padding: 10px;
     border-bottom: 1px solid #E7F0DC;
+}
+
+.sidebar_userProfile {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #dadad8;
 }
 
 .sidebar-option {
@@ -52,14 +63,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: 10px;
-    padding-right: 10px;
     border-bottom: 1px solid #E7F0DC;
     height: 55px;
+    padding: 10px;
 }
 
 .content-item:hover {
-    background-color: #BBE9FF;
+    background-color: #aab2b5;
 }
 
 .content-user {
@@ -69,4 +79,5 @@
 
 .content-user > p {
     padding-left: 10px;
+    font-size: 17px;
 }

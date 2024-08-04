@@ -1,5 +1,4 @@
 import '../css/Sidebar.css';
-import { HiMiniUserCircle } from "react-icons/hi2";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { MdOutlineMessage } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
@@ -9,7 +8,6 @@ import axios from 'axios';
 import moment from 'moment';
 import useChatStore from '../store/useStore';
 import { io } from 'socket.io-client';
-import { useParams } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,11 +15,9 @@ let socket;
 
 const Sidebar = () => {
 
-    const { chatList, setChatList, setInputBox, addChat, setUser } = useChatStore();
+    const { chatList, setChatList, setInputBox, addChat, setUser, user } = useChatStore();
     const [searchTerm, setSearchTerm] = useState('');
-    const { currentChatId } = useParams();
     const [showMenu, setShowMenu] = useState(false);
-    console.log(currentChatId)
 
     useEffect(()=> {
         fetchAllChatList();
@@ -53,13 +49,26 @@ const Sidebar = () => {
         localStorage.removeItem('username');
     }
 
+    function getInitials(name) {
+        const words = name.trim().split(/\s+/);
+        if (words.length === 1) {
+            return words[0].charAt(0).toUpperCase();
+        }
+        if (words.length > 2) {
+            return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+        }
+        return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+    }
+
   return (
     <div className='sidebar'>
         <nav className='navigation'>
-            <HiMiniUserCircle size={40} color='white' className='pointer'/>
+            <div className='sidebar_userProfile'>
+                <h2>{getInitials(user)}</h2>
+            </div>
             <div className='sidebar-option'>
-                <MdOutlineMessage size={22} className='mar pointer' onClick={handleInputBox}/>
-                <BsThreeDotsVertical size={22} className='pointer' onClick={() => setShowMenu(prev => !prev)}/>
+                <MdOutlineMessage size={25} className='mar pointer' onClick={handleInputBox}/>
+                <BsThreeDotsVertical size={25} className='pointer' onClick={() => setShowMenu(prev => !prev)}/>
                 {showMenu && (
                     <div className="menu abs">
                     <button onClick={handleLogout}>Logout</button>
@@ -83,9 +92,11 @@ const Sidebar = () => {
                 filteredChats.map((chat, id) => {
                     return (
                     <Link to={`${chat.chatId}`} key={id} style={{ textDecoration: 'none', color: 'black' }}>
-                        <div className={`content-item pointer ${currentChatId === chat.chatId ? 'highLight': ''}`}>
+                        <div className={`content-item pointer`}>
                             <div className='content-user'>
-                                <HiMiniUserCircle size={40} color='white' className='pointer'/>
+                            <div className='sidebar_userProfile'>
+                                <h2>{getInitials(chat.chatName)}</h2>
+                            </div>
                                 <p>{chat.chatName}</p>
                             </div>
                         <p>{moment(chat.chatTime).format('LT')}</p>

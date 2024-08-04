@@ -1,5 +1,4 @@
 import '../css/ChatArea.css';
-import { HiMiniUserCircle } from "react-icons/hi2";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoIosAttach } from "react-icons/io";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
@@ -32,7 +31,8 @@ const ChatArea = () => {
     socket.emit('joinChat', chatId);
 
     socket.on('receiveMessage', (message) => {
-      addMessage(message)
+      addMessage(message);
+      scrollToBottom();
     });
 
     return () => {
@@ -41,10 +41,20 @@ const ChatArea = () => {
     };
   }, [chatId]);
 
+  useEffect(() => {
+    window.addEventListener('load', scrollToBottom);
+    return () => window.removeEventListener('load', scrollToBottom);
+  }, [chatId]);
+
+  const scrollToBottom = () => {
+    window.scrollTo(100, document.body.scrollHeight);
+  };
+
   const fetchMessages = async () => {
     try {
       const fetchedMessages = await axios.get(`${API_URL}/api/messages/${chatId}`);
       setMessages(fetchedMessages.data);
+      scrollToBottom();
     } catch (error) {
       console.error('Error fetching chat messages:', error);
     }
@@ -72,29 +82,43 @@ const ChatArea = () => {
 
   const handleDeleteChat = async () => {
     try {
-        await axios.delete(`${API_URL}/api/chat/deleteChat/${chatId}`);
-        deleteChatList(chatId);
+      await axios.delete(`${API_URL}/api/chat/deleteChat/${chatId}`);
+      deleteChatList(chatId);
     } catch (error) {
-        console.error('Error deleting chat:', error);
+      console.error('Error deleting chat:', error);
     }
-}
-const onEmojiClick = (emojidata) => {
-  setNewMessage(prevMessage => prevMessage + emojidata.emoji);
-};
+  };
 
-const calculateDaysAgo = (isoDate) => {
-  const pastDate = new Date(isoDate);
-  const currentDate = new Date();
-  const differenceInMs = currentDate - pastDate;
-  const differenceInDays = Math.floor(differenceInMs / (24 * 60 * 60 * 1000));
-  return differenceInDays;
-};
+  const onEmojiClick = (emojidata) => {
+    setNewMessage(prevMessage => prevMessage + emojidata.emoji);
+  };
+
+  const calculateDaysAgo = (isoDate) => {
+    const pastDate = new Date(isoDate);
+    const currentDate = new Date();
+    const differenceInMs = currentDate - pastDate;
+    const differenceInDays = Math.floor(differenceInMs / (24 * 60 * 60 * 1000));
+    return differenceInDays;
+  };
+
+  function getInitials(name) {
+    const words = name.trim().split(/\s+/);
+    if (words.length === 1) {
+      return words[0].charAt(0).toUpperCase();
+    }
+    if (words.length > 2) {
+      return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+    }
+    return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+  }
 
   return (
     <div className='chatArea'>
       <header className='header'>
         <div className='chatArea-user'>
-          <HiMiniUserCircle size={40} color='white' className='mar pointer hov'/>
+          <div className='sidebar_userProfile'>
+            <h2>{getInitials(`${messages.name !== '' ? messages.name : ''}`)}</h2>
+          </div>
           <p>{messages.name}</p>
         </div>
         <div style={{position: 'relative'}}>
@@ -106,7 +130,7 @@ const calculateDaysAgo = (isoDate) => {
                 <button onClick={handleDeleteChat}>Delete Chat</button>
               </Link>
             </div>
-            )}
+          )}
         </div>
       </header>
       <div className='chats'>
@@ -114,7 +138,7 @@ const calculateDaysAgo = (isoDate) => {
           messages?.messages?.map((message, id) => {
             const day = calculateDaysAgo(message.time);
             return (
-              <div key={id} className={`chat ${message.senderName === user? 'right': 'left'}`}>
+              <div key={id} className={`chat ${message.senderName === user ? 'right' : 'left'}`}>
                 <p>{message.message}</p>
                 <h6>{`${day === 0 ? 'Today at' : day === 1 ? 'Yesterday at' : `${day} days ago at`} ${moment(message.time).format('LT')}`}</h6>
               </div>
@@ -123,29 +147,29 @@ const calculateDaysAgo = (isoDate) => {
         }
       </div>
       <footer className='footer'>
-      <MdOutlineEmojiEmotions 
-        className='pointer' 
-        size={25} 
-        color='#BACD92' 
-        onClick={() => {setShowEmojiPicker(prev => !prev); setShowCrossIcon(prev => !prev)}}
-      />
+        <MdOutlineEmojiEmotions 
+          className='pointer' 
+          size={25} 
+          color='black' 
+          onClick={() => { setShowEmojiPicker(prev => !prev); setShowCrossIcon(prev => !prev) }}
+        />
         <div className='emoji-container'>
           {
             showCrossIcon && 
-              <AiOutlineClose 
-                className='close-icon' 
-                size={20} 
-                onClick={() => {setShowEmojiPicker(false); setShowCrossIcon(prev => !prev) }}
-              /> 
+            <AiOutlineClose 
+              className='close-icon' 
+              size={20} 
+              onClick={() => { setShowEmojiPicker(false); setShowCrossIcon(prev => !prev) }}
+            /> 
           }
           {
             showEmojiPicker && 
-              <EmojiPicker 
+            <EmojiPicker 
               onEmojiClick={onEmojiClick} 
               height={350} 
               width={300} 
               skinTonesDisabled
-              />
+            />
           }
         </div>
         <input 
@@ -155,10 +179,10 @@ const calculateDaysAgo = (isoDate) => {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleSendMessage}
         />
-        <CiMicrophoneOn className='pointer' size={25} color='#BACD92'/>
+        <CiMicrophoneOn className='pointer' size={25} color='black'/>
       </footer>
     </div>
   )
 }
 
-export default ChatArea
+export default ChatArea;

@@ -1,0 +1,37 @@
+.blankchat {
+    width: 75vw;
+    height: 100vh;
+    background: #F5EDED;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+}
+
+.blankchat_container {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+}
+
+img {
+    width: 80%;
+}
+
+.blankchat_encry {
+    display: flex;
+    align-items: center;
+    padding-top: 10%;
+}
+
+.blankchat_encry>p {
+    margin-left: 5px;
+}
+
+@media (max-width: 768px) {
+    .blankchat {
+        width: 100vw;
+        display: none;
+    }
+}
