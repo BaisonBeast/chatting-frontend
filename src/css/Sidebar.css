@@ -55,8 +55,8 @@
 .content {
     display: flex;
     flex-direction: column;
-    height: 80%;
     overflow-x: auto;
+    flex-grow: 1;
 }
 
 .content-item {

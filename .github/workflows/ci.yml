@@ -1,0 +1,54 @@
+name: CI - Lint and Build
+
+# Run the workflow on any pull request to the main branch
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint Codebase
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # You can specify the version of Node.js you use here
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Run ESLint for linting
+      - name: Run ESLint
+        run: npm run lint
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Ensure the Node.js version is compatible with your project
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Run build
+      - name: Build the project
+        run: npm run build
