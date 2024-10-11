@@ -37,7 +37,7 @@ const App = () => {
     return (
         <div className="login-container">
             <form className="login-form" onSubmit={(e) => handleSubmit}>
-                <h2>Login | Register</h2>
+                <h2 className="bg-pink-100">Login | Register</h2>
                 <div className="form-group">
                     <input
                         type="text"

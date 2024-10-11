@@ -2,8 +2,16 @@ import { create } from "zustand";
 import { Message, Messages } from "../interfaces/message.interface";
 import { Chat } from "../interfaces/chat.interface";
 
+interface User {
+    id: string;
+    email: string;
+    username: string;
+    profilePic: string;
+    background: number;
+}
+
 interface ChatStore {
-    user: null | string;
+    user: null | User;
     messages: Messages;
     chatList: Chat[];
     inputBox: boolean;
@@ -12,12 +20,12 @@ interface ChatStore {
     setInputBox: () => void;
     deleteChatList: (chatId: string) => void;
     setMessages: (messages: Messages) => void;
-    setUser: (user: string | null) => void;
+    setUser: (user: User | null) => void;
     setChatList: (chatList: Chat[]) => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
-    user: localStorage.getItem("username") || null,
+    user: JSON.parse(localStorage.getItem("user") || 'null') ,
     messages: {
         name: "general",
         messages: [],
@@ -34,7 +42,14 @@ const useChatStore = create<ChatStore>((set) => ({
     addChat: (chat) =>
         set((state) => ({ chatList: [...state.chatList, chat] })),
     setMessages: (messages) => set(() => ({ messages })),
-    setUser: (user) => set(() => ({ user })),
+    setUser: (user: User | null) => {
+        if (user) {
+            localStorage.setItem("user", JSON.stringify(user));
+        } else {
+            localStorage.removeItem("user");
+        }
+        set({ user });
+    },
     setChatList: (chatList) => set(() => ({ chatList })),
     setInputBox: () => set((state) => ({ inputBox: !state.inputBox })),
     deleteChatList: (chatId) =>

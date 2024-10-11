@@ -1,56 +1,8 @@
-.sidebar {
-    width: 25vw;
-    height: 100vh;
-    background: #b3bab3;
-}
-
-.navigation {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px;
-    border-bottom: 1px solid #E7F0DC;
-}
-
-.sidebar_userProfile {
-    height: 50px;
-    width: 50px;
-    border-radius: 50%;
-    color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #dadad8;
-}
-
-.sidebar-option {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
 
 .abs {
     top: 25px;
     left: 45px;
 }
-
-
-.search {
-    width: 97%;
-    display: flex;
-    align-items: center;
-    background-color: white;
-    height: 40px;
-    padding-left: 10px;
-}
-
-.search > input {
-    outline: none;
-    border: none;
-    width: 90%;
-    height: 30px;
-}
-
 
 .content {
     display: flex;

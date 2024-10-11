@@ -11,6 +11,12 @@ import { io, Socket } from "socket.io-client";
 import useChatStore from "../store/useStore";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { AiOutlineClose } from "react-icons/ai";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 const API_URL = import.meta.env.VITE_API_URL;
 let socket: Socket;
@@ -25,7 +31,7 @@ const ChatArea = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
-        fetchMessages();
+        // fetchMessages();
         if (!socket) socket = io(API_URL);
 
         socket.emit("joinChat", chatId);
@@ -63,7 +69,7 @@ const ChatArea = () => {
     };
 
     const handleSendMessage = async (
-        e: React.KeyboardEvent<HTMLInputElement>
+        e: React.KeyboardEvent<HTMLTextAreaElement>
     ) => {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -106,7 +112,7 @@ const ChatArea = () => {
     const calculateDaysAgo = (isoDate: Date) => {
         const pastDate = new Date(isoDate);
         const currentDate = new Date();
-        const differenceInMs = currentDate.getTime() - pastDate.getTime();;
+        const differenceInMs = currentDate.getTime() - pastDate.getTime();
         const differenceInDays = Math.floor(
             differenceInMs / (24 * 60 * 60 * 1000)
         );
@@ -130,43 +136,39 @@ const ChatArea = () => {
     }
 
     return (
-        <div className="chatArea">
-            <header className="header">
-                <div className="chatArea-user">
-                    <div className="sidebar_userProfile">
-                        <h2>
-                            {getInitials(
-                                `${messages.name !== "" ? messages.name : ""}`
-                            )}
-                        </h2>
-                    </div>
-                    <p>{messages.name}</p>
+        <div className="w-3/4 h-screen flex flex-col">
+            <nav className="flex h-19 items-center justify-between p-3 bg-slate-50">
+                <div className="flex items-center gap-5 pl-3">
+                    <Avatar>
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                    <h2>{messages.name}</h2>
                 </div>
-                <div style={{ position: "relative" }}>
-                    <IoIosAttach size={25} className="mar pointer" />
-                    <BsThreeDotsVertical
-                        size={25}
-                        className="pointer"
-                        onClick={() => setShowMenu((prev) => !prev)}
-                    />
-                    {showMenu && (
-                        <div className="menu">
-                            <Link
-                                to="/"
-                                style={{
-                                    textDecoration: "none",
-                                    color: "black",
-                                }}
+                <div className="flex gap-5">
+                    <IoIosAttach size={25} className="cursor-pointer" />
+                    <Popover>
+                        <PopoverTrigger>
+                            <BsThreeDotsVertical
+                                size={25}
+                                className="cursor-pointer"
+                            />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 flex flex-col items-start">
+                            <div
+                                className="cursor-pointer w-full pl-2"
+                                onClick={handleDeleteChat}
                             >
-                                <button onClick={handleDeleteChat}>
-                                    Delete Chat
-                                </button>
-                            </Link>
-                        </div>
-                    )}
+                                Delete chat
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
-            </header>
-            <div className="chats">
+            </nav>
+            <div
+                className="flex flex-col flex-grow"
+                style={{ backgroundImage: `url(${user?.background}.png)` }}
+            >
                 {messages?.messages?.map((message, id) => {
                     const day = calculateDaysAgo(message.time);
                     return (
@@ -188,9 +190,9 @@ const ChatArea = () => {
                     );
                 })}
             </div>
-            <footer className="footer">
+            <footer className="flex gap-3 rounded items-center relative mt-3 pl-2 pr-2 bg-slate-100 h-1/10">
                 <MdOutlineEmojiEmotions
-                    className="pointer"
+                    className="cursor-pointer"
                     size={25}
                     color="black"
                     onClick={() => {
@@ -201,7 +203,7 @@ const ChatArea = () => {
                 <div className="emoji-container">
                     {showCrossIcon && (
                         <AiOutlineClose
-                            className="close-icon"
+                            className="z-10 absolute top-1 right-1 cursor-pointer"
                             size={20}
                             onClick={() => {
                                 setShowEmojiPicker(false);
@@ -214,18 +216,23 @@ const ChatArea = () => {
                             onEmojiClick={onEmojiClick}
                             height={350}
                             width={300}
+                            className="cursor-pointer"
                             skinTonesDisabled
                         />
                     )}
                 </div>
-                <input
-                    type="text"
+                <textarea
+                    className="bg-slate-50  outline-none p-2 text-xl max-h-[80px] rounded flex-wrap w-full resize-none"
                     placeholder="Enter message"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleSendMessage}
                 />
-                <CiMicrophoneOn className="pointer" size={25} color="black" />
+                <CiMicrophoneOn
+                    className={"cursor-pointer"}
+                    size={25}
+                    color="black"
+                />
             </footer>
         </div>
     );
