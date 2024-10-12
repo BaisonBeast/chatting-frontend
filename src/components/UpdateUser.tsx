@@ -4,7 +4,6 @@ import {
     SheetHeader,
     SheetTitle,
     SheetFooter,
-    SheetClose,
 } from "@/components/ui/sheet";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "./ui/input";
@@ -13,8 +12,12 @@ import useChatStore from "@/store/useStore";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RxCross2 } from "react-icons/rx";
+import axios from "axios";
+import { toast } from "@/hooks/use-toast";
+import { HashLoader } from "react-spinners";
 
 const images = [1, 2, 3, 4];
+const API_URL = import.meta.env.VITE_API_URL;
 
 const UpdateUser = () => {
     const { setUser, user } = useChatStore();
@@ -24,6 +27,7 @@ const UpdateUser = () => {
     );
     const [profilePic, setProfilePic] = useState<File | null>(null);
     const [imageUrl, setImageUrl] = useState<string>("");
+    const [loading, setLoading] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
@@ -38,6 +42,50 @@ const UpdateUser = () => {
             reader.onloadend = () => {
                 setImageUrl(reader.result as string);
             };
+        }
+    };
+
+    const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (
+            !user ||
+            (username === "" &&
+                selectedBackground === (user?.background as number) &&
+                profilePic === null)
+        )
+            return;
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("email", user.email);
+        formData.append("username", username);
+        if (profilePic !== null) formData.append("profilePic", profilePic);
+        try {
+            setLoading(true);
+            const resp = await axios.post(
+                `${API_URL}/api/chatUser/update`,
+                formData
+            );
+            setUser(resp.data.datá);
+            toast({ title: resp.data.message });
+            setUsername('');
+            setProfilePic(null);
+            setImageUrl('');
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+
+                toast({
+                    title: "Invalid credentials",
+                    description: `${message}`,
+                });
+            } else {
+                toast({
+                    title: "Something went wrong",
+                    description: "Please try again after some time...",
+                });
+            }
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -137,9 +185,13 @@ const UpdateUser = () => {
                 </div>
             </div>
             <SheetFooter>
-                <SheetClose asChild>
-                    <Button type="submit">Save changes</Button>
-                </SheetClose>
+                {loading ? (
+                    <HashLoader />
+                ) : (
+                    <Button type="submit" onClick={handleUpdate}>
+                        "Save changes"{" "}
+                    </Button>
+                )}
             </SheetFooter>
         </SheetContent>
     );
