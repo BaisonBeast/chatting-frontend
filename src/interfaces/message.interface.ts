@@ -1,10 +1,11 @@
 export interface Message {
     senderName: string;
     message: string;
-    time: Date;
+    isDeleted: boolean;
+    isEdited: boolean;
+    like: number;
+    id: string;
+    createdAt: string;
 }
 
-export interface Messages {
-    name: string;
-    messages: Message[]
-}
+export type Messages = Message[];

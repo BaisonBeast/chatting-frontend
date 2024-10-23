@@ -28,11 +28,11 @@ const App = () => {
         }
     };
 
-    const handleGuestLogin = () => {
-        localStorage.setItem("username", "Guest");
-        setUser("Guest");
-        navigate("/");
-    };
+    // const handleGuestLogin = () => {
+    //     localStorage.setItem("username", "Guest");
+    //     setUser("Guest");
+    //     navigate("/");
+    // };
 
     return (
         <div className="login-container">
@@ -59,10 +59,10 @@ const App = () => {
                 <button type="submit" className="login-button">
                     Login
                 </button>
-                <div className="guest-login" onClick={handleGuestLogin}>
+                {/* <div className="guest-login" onClick={handleGuestLogin}>
                     <FaUserSecret size={20} className="guest-icon" /> Login as
                     Guest
-                </div>
+                </div> */}
             </form>
         </div>
     );

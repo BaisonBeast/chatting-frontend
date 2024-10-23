@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Message, Messages } from "../interfaces/message.interface";
-import { Chat } from "../interfaces/chat.interface";
+import { SingleChat } from "../interfaces/chat.interface";
 
 interface User {
     id: string;
@@ -13,49 +13,35 @@ interface User {
 interface ChatStore {
     user: null | User;
     messages: Messages;
-    chatList: Chat[];
-    inputBox: boolean;
+    chatList: SingleChat[];
+    selectedChat: number;
+    setSelectedChat: (indx: number) => void;
     addMessage: (newMessage: Message) => void;
-    addChat: (chat: Chat) => void;
-    setInputBox: () => void;
-    deleteChatList: (chatId: string) => void;
+    addChat: (chat: SingleChat) => void;
     setMessages: (messages: Messages) => void;
     setUser: (user: User | null) => void;
-    setChatList: (chatList: Chat[]) => void;
+    setChatList: (chatList: SingleChat[]) => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
-    user: JSON.parse(localStorage.getItem("user") || 'null') ,
-    messages: {
-        name: "general",
-        messages: [],
-    },
+    user: JSON.parse(localStorage.getItem("user") || "null"),
+    selectedChat: -1,
+    setSelectedChat: (selectedChat) => set(() => ({ selectedChat })),
+    messages: [],
     chatList: [],
-    inputBox: false,
     addMessage: (newMessage) =>
         set((state) => ({
-            messages: {
-                ...state.messages,
-                messages: [...state.messages.messages, newMessage],
-            },
+            messages: [...state.messages, newMessage],
         })),
     addChat: (chat) =>
         set((state) => ({ chatList: [...state.chatList, chat] })),
     setMessages: (messages) => set(() => ({ messages })),
     setUser: (user: User | null) => {
-        if (user) {
-            localStorage.setItem("user", JSON.stringify(user));
-        } else {
-            localStorage.removeItem("user");
-        }
-        set({ user });
+        if (user != null) localStorage.setItem("user", JSON.stringify(user));
+        else localStorage.removeItem("user");
+        set(() => ({ user }));
     },
     setChatList: (chatList) => set(() => ({ chatList })),
-    setInputBox: () => set((state) => ({ inputBox: !state.inputBox })),
-    deleteChatList: (chatId) =>
-        set((state) => ({
-            chatList: state.chatList.filter((chat) => chat.chatId !== chatId),
-        })),
 }));
 
 export default useChatStore;

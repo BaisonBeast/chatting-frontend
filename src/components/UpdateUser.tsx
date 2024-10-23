@@ -46,6 +46,7 @@ const UpdateUser = () => {
     };
 
     const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
         if (
             !user ||
             (username === "" &&
@@ -53,9 +54,9 @@ const UpdateUser = () => {
                 profilePic === null)
         )
             return;
-        e.preventDefault();
         const formData = new FormData();
         formData.append("email", user.email);
+        formData.append("background", selectedBackground.toString());
         formData.append("username", username);
         if (profilePic !== null) formData.append("profilePic", profilePic);
         try {
@@ -64,11 +65,11 @@ const UpdateUser = () => {
                 `${API_URL}/api/chatUser/update`,
                 formData
             );
-            setUser(resp.data.datá);
+            setUser(resp.data.data);
             toast({ title: resp.data.message });
-            setUsername('');
+            setUsername("");
             setProfilePic(null);
-            setImageUrl('');
+            setImageUrl("");
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -149,14 +150,13 @@ const UpdateUser = () => {
                             return (
                                 <img
                                     className={`${
-                                        selectedBackground === indx + 1
+                                        selectedBackground === indx
                                             ? "border-4 border-green-950"
                                             : ""
                                     }contain cursor-pointer p-1`}
                                     src={`/${image}.png`}
-                                    onClick={() =>
-                                        setSelectedBackground(indx + 1)
-                                    }
+                                    onClick={() => setSelectedBackground(indx)}
+                                    key={indx}
                                 />
                             );
                         })}
