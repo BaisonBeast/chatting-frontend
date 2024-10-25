@@ -12,6 +12,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowUp } from "react-icons/io";
 import moment from "moment";
 import { SingleChat } from "@/interfaces/chat.interface";
+import { useSocket } from "@/context/SocketContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -20,14 +21,44 @@ interface ChatListProps {
 }
 
 const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
-    const { user, setSelectedChat, selectedChat, chatList, setChatList } = useChatStore();
+    const { user, setSelectedChat, selectedChat, chatList, setChatList, addChat } = useChatStore();
     const { toast } = useToast();
+    const { socket } = useSocket();
 
     const [chatIsOpen, setchatIsOpen] = useState(false);
 
     useEffect(() => {
         fetchAllChatList();
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("createChat", (newChat: any) => {
+            const otherParticipant =
+                newChat.participants[0].email === user?.email
+                        ? newChat.participants[1]
+                        : newChat.participants[0];
+
+            const newChatExtract: SingleChat = {
+                id: newChat._id,
+                createdAt: newChat.createdAt,
+                updatedAt: newChat.updatedAt,
+                participant: {
+                    username: otherParticipant.username,
+                    profilePic: otherParticipant.profilePic,
+                    email: otherParticipant.email,
+                },
+            }
+            
+            addChat(newChatExtract)
+
+        });
+
+        return () => {
+            socket.off("createChat");
+        };
+    }, [socket]);
 
     const filteredChats = chatList.filter((chat) =>
         chat.participant.username
@@ -56,11 +87,11 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
 
     function getOtherParticipants(
         chatArray: any[],
-        userUsername: string
+        userEmail: string
     ): SingleChat[] {
-        return chatArray.map((chat) => {
+        return chatArray?.map((chat) => {
             const otherParticipant =
-                chat.participants[0].username === userUsername
+                chat.participants[0].email === userEmail
                     ? chat.participants[1]
                     : chat.participants[0];
             return {
@@ -70,6 +101,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                 participant: {
                     username: otherParticipant.username,
                     profilePic: otherParticipant.profilePic,
+                    email: otherParticipant.parti,
                 },
             };
         });
@@ -84,7 +116,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
             });
             const result = getOtherParticipants(
                 resp.data.data,
-                user?.username as string
+                user?.email as string
             );
             setChatList(result);
         } catch (err) {

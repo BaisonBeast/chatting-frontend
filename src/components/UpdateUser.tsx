@@ -118,6 +118,7 @@ const UpdateUser = () => {
                     done.
                 </SheetDescription>
             </SheetHeader>
+            <p>{user?.email}</p>
             <div className="flex mt-10 mb-10 gap-10 items-center justify-center">
                 <Avatar className="w-28 h-28">
                     <AvatarImage

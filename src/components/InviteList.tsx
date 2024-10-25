@@ -11,6 +11,7 @@ import { IoIosArrowUp } from "react-icons/io";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
+import { useSocket } from "@/context/SocketContext";
 
 interface Invite {
     _id: string;
@@ -24,6 +25,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const InviteList = () => {
     const { user } = useChatStore();
     const { toast } = useToast();
+    const { socket } = useSocket();
 
     const [inviteIsOpen, setinviteIsOpen] = useState(false);
     const [inviteList, setInviteList] = useState<Invite[]>([]);
@@ -31,6 +33,22 @@ const InviteList = () => {
     useEffect(() => {
         fetchAllInviteList();
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("newInvite", (inviteData: Invite) => {
+            setInviteList((prevList) => [...prevList, inviteData]);
+            toast({
+                title: "New Invite",
+                description: `${inviteData.username} invited you.`,
+            });
+        });
+
+        return () => {
+            socket.off("newInvite");
+        };
+    }, [socket]);
 
     const fetchAllInviteList = async () => {
         try {

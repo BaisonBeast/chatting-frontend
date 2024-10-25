@@ -16,6 +16,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import moment from "moment";
+import { useSocket } from "@/context/SocketContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 let socket: Socket | null = null;
@@ -28,10 +29,11 @@ const ChatArea = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [chatId, setChatId] = useState("");
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const { socket } = useSocket();
 
     useEffect(() => {
         if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight; 
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
     }, [messages]);
 
@@ -40,49 +42,29 @@ const ChatArea = () => {
     }, [selectedChat]);
 
     useEffect(() => {
-        fetchMessages();
+        if (chatId !== "") fetchMessages();
     }, [chatId]);
 
     useEffect(() => {
-        if (!socket) {
-            socket = io(API_URL, {
-                withCredentials: true,
-            });
-        }
+        if (!socket) return;
+
+        socket.on("newMessage", (data) => {
+            addMessage(data.message);
+        });
 
         return () => {
             if (socket) {
-                socket.disconnect();
-                socket = null;
+                socket.off("newMessage");
+                socket.emit("leaveChat", chatId);
             }
         };
-    }, []);
-
-    useEffect(() => {
-        if (socket && chatId) {
-            socket.emit("joinChat", chatId);
-
-            socket.on("newMessage", (data) => {
-                if (data.chatId === chatId) {
-                    addMessage(data.message);
-                }
-            });
-
-            return () => {
-                if (socket) {
-                    socket.off("newMessage");
-                    socket.emit("leaveChat", chatId);
-                }
-            };
-        }
-    }, [chatId]);
+    }, [socket]);
 
     const fetchMessages = async () => {
         try {
             const fetchedMessages = await axios.get(
                 `${API_URL}/api/messages/allMessage/${chatId}`
             );
-            console.log(fetchedMessages.data.data);
             setMessages(fetchedMessages.data.data);
         } catch (error) {
             console.error("Error fetching chat messages:", error);
@@ -92,12 +74,14 @@ const ChatArea = () => {
     const handleSendMessage = async (
         e: React.KeyboardEvent<HTMLTextAreaElement>
     ) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && selectedChat !== -1) {
             e.preventDefault();
             if (newMessage.trim()) {
                 const messageData = {
                     senderName: user?.username,
                     message: newMessage,
+                    loggedInUser: user?.email,
+                    otherSideUser: chatList[selectedChat].participant.email,
                 };
 
                 try {

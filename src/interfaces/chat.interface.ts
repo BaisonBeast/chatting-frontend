@@ -8,4 +8,5 @@ export interface SingleChat {
 interface Participient {
     username: string;
     profilePic: string;
+    email: string;
 }
