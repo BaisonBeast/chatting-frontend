@@ -112,7 +112,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                     key={chat.id}
                                     className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
                                     onClick={() => setSelectedChat(indx)}
-                                    style={{background: `${selectedChat === indx ? '#FFCF9D': ''}`}}
+                                    style={{background: `${selectedChat === indx ? '#E5E7EB': ''}`}}
                                 >
                                     <div className="flex items-center">
                                         <Avatar>

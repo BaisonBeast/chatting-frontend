@@ -6,6 +6,7 @@ export interface Message {
     like: number;
     id: string;
     createdAt: string;
+    updatedAt: string;
 }
 
 export type Messages = Message[];

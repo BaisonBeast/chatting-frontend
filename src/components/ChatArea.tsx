@@ -3,8 +3,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoIosAttach } from "react-icons/io";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { CiMicrophoneOn } from "react-icons/ci";
-import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
 import useChatStore from "../store/useStore";
@@ -19,7 +18,7 @@ import {
 import moment from "moment";
 
 const API_URL = import.meta.env.VITE_API_URL;
-let socket: Socket;
+let socket: Socket | null = null;
 
 const ChatArea = () => {
     const { messages, addMessage, setMessages, user, selectedChat, chatList } =
@@ -28,6 +27,13 @@ const ChatArea = () => {
     const [newMessage, setNewMessage] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [chatId, setChatId] = useState("");
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight; 
+        }
+    }, [messages]);
 
     useEffect(() => {
         if (selectedChat !== -1) setChatId(chatList[selectedChat].id);
@@ -35,6 +41,40 @@ const ChatArea = () => {
 
     useEffect(() => {
         fetchMessages();
+    }, [chatId]);
+
+    useEffect(() => {
+        if (!socket) {
+            socket = io(API_URL, {
+                withCredentials: true,
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (socket && chatId) {
+            socket.emit("joinChat", chatId);
+
+            socket.on("newMessage", (data) => {
+                if (data.chatId === chatId) {
+                    addMessage(data.message);
+                }
+            });
+
+            return () => {
+                if (socket) {
+                    socket.off("newMessage");
+                    socket.emit("leaveChat", chatId);
+                }
+            };
+        }
     }, [chatId]);
 
     const fetchMessages = async () => {
@@ -66,7 +106,6 @@ const ChatArea = () => {
                         `${API_URL}/api/messages/newMessage/${chatId}`,
                         messageData
                     );
-                    addMessage(res.data.data);
                 } catch (error) {
                     console.error("Error sending message:", error);
                 }
@@ -89,15 +128,15 @@ const ChatArea = () => {
         setNewMessage((prevMessage) => prevMessage + emojidata.emoji);
     };
 
-    // const calculateDaysAgo = (isoDate: Daste) => {
-    //     const pastDate = new Date(isoDate);
-    //     const currentDate = new Date();
-    //     const differenceInMs = currentDate.getTime() - pastDate.getTime();
-    //     const differenceInDays = Math.floor(
-    //         differenceInMs / (24 * 60 * 60 * 1000)
-    //     );
-    //     return differenceInDays;
-    // };
+    const calculateDaysAgo = (isoDate: string) => {
+        const pastDate = new Date(isoDate);
+        const currentDate = new Date();
+        const differenceInMs = currentDate.getTime() - pastDate.getTime();
+        const differenceInDays = Math.floor(
+            differenceInMs / (24 * 60 * 60 * 1000)
+        );
+        return differenceInDays;
+    };
 
     function getInitials(name: string) {
         const words = name.trim().split(/\s+/);
@@ -168,10 +207,11 @@ const ChatArea = () => {
                     backgroundImage: `url(${user?.background}.png)`,
                     filter: "grayscale(10%) contrast(80%)",
                 }}
+                ref={containerRef}
             >
                 {messages &&
                     messages.map((message, id) => {
-                        const day = 0;
+                        const day = calculateDaysAgo(message.updatedAt);
                         return (
                             <div
                                 key={id}
@@ -179,7 +219,9 @@ const ChatArea = () => {
                                     message.senderName === user?.username
                                         ? "right"
                                         : "left"
-                                }`}
+                                }
+                                rounded-br-2xl
+                                `}
                             >
                                 <p>{message.message}</p>
                                 <h6>{`${
@@ -188,7 +230,7 @@ const ChatArea = () => {
                                         : day === 1
                                         ? "Yesterday at"
                                         : `${day} days ago at`
-                                } ${moment(message.createdAt).format(
+                                } ${moment(message.updatedAt).format(
                                     "LT"
                                 )}`}</h6>
                             </div>

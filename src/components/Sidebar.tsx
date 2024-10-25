@@ -71,12 +71,21 @@ const Sidebar = () => {
                 title: `${resp.data.message}`,
             });
             setInviteEmail("");
-        } catch (err) {
-            console.log(err);
-            toast({
-                title: "Something went wrong",
-                description: "Please try again after some time...",
-            });
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+
+                toast({
+                    title: "Please try again",
+                    description: `${message}`,
+                });
+            } else {
+                toast({
+                    title: "Something went wrong",
+                    description: "Please try again after some time...",
+                });
+            }
+            console.error(err);
         } finally {
             setLoading(false);
         }

@@ -189,7 +189,7 @@ const UpdateUser = () => {
                     <HashLoader />
                 ) : (
                     <Button type="submit" onClick={handleUpdate}>
-                        "Save changes"{" "}
+                        Save changes
                     </Button>
                 )}
             </SheetFooter>
