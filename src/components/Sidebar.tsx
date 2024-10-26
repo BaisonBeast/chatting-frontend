@@ -59,6 +59,10 @@ const Sidebar = () => {
             toast({ title: "Pleaes enter the email whome you want to invite" });
             return;
         }
+        if (inviteEmail === user?.email) {
+            toast({ title: "Self invitation is not allowed" });
+            return;
+        }
         try {
             setLoading(true);
             const resp = await axios.post(`${API_URL}/api/chat/inviteUser`, {

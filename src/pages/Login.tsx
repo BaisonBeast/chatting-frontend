@@ -17,7 +17,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import useChatStore from "@/store/useStore";
-import { Atom } from "react-loading-indicators";
+import { HashLoader } from "react-spinners";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -77,40 +77,47 @@ export default function Login() {
         }
     };
     return (
-        <div className="w-screen h-screen flex justify-center items-center">
-            <Card className="flex h-3/6 w-5/6 md:w-4/6 md:h-3/6 xl:w-4/6 xl:h-5/6  items-center justify-center">
-                <div className="hidden md:flex md:w-1/2 md:h-3/4 md:items-center md:justify-center">
+        <div className="w-screen h-screen flex justify-center items-center p-4">
+            <Card className="flex flex-col w-full max-w-xs md:max-w-4xl md:flex-row md:h-5/6 items-center justify-center shadow-lg">
+                <div className="hidden md:flex md:w-1/2 md:h-full md:items-center md:justify-center p-4">
                     <img
-                        className="rounded-lg shadow-lg object-fill shadow-slate-400"
+                        className="rounded-lg shadow-lg object-cover w-full h-full max-h-72 md:max-h-full"
                         src={Logo}
                         alt="Main Logo"
                     />
                 </div>
-                <Card className="flex flex-col w-11/12 md:w-2/5 md:h-4/6 items-center justify-center">
-                    <CardHeader className="flex flex-col w-full items-center">
-                        <CardTitle className="text-2xl">Login</CardTitle>
-                        <CardDescription>This is Login page...</CardDescription>
+
+                <Card className="flex flex-col w-full p-6 sm:p-8 items-center justify-center md:w-1/2 lg:w-2/5">
+                    <CardHeader className="flex flex-col items-center text-center mb-4">
+                        <CardTitle className="text-xl sm:text-2xl md:text-3xl">
+                            Login
+                        </CardTitle>
+                        <CardDescription className="text-sm md:text-base">
+                            This is the Login page...
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex flex-col gap-1 w-full">
+
+                    <CardContent className="flex flex-col gap-3 w-full">
                         <Input
                             type="email"
                             placeholder="Email"
-                            required={true}
-                            className="w-11/12"
+                            required
+                            className="w-full"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                        <div className="relative">
+
+                        <div className="relative w-full">
                             {passwordType ? (
                                 <FaEye
-                                    className="absolute right-10 top-2 pointer"
+                                    className="absolute right-3 top-3 text-gray-500 cursor-pointer"
                                     onClick={() =>
                                         setPasswordType((prev) => !prev)
                                     }
                                 />
                             ) : (
                                 <FaEyeSlash
-                                    className="absolute right-10 top-2 pointer"
+                                    className="absolute right-3 top-3 text-gray-500 cursor-pointer"
                                     onClick={() =>
                                         setPasswordType((prev) => !prev)
                                     }
@@ -119,32 +126,32 @@ export default function Login() {
                             <Input
                                 type={passwordType ? "password" : "text"}
                                 placeholder="Password"
-                                required={true}
-                                className="w-11/12"
+                                required
+                                className="w-full"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
                     </CardContent>
-                    <CardFooter className="gap-2">
+
+                    <CardFooter className="flex flex-col gap-3 items-center mt-6 w-full">
                         {loading ? (
-                            <Atom
-                                color="#030703"
-                                size="medium"
-                                text=""
-                                textColor=""
-                            />
+                            <HashLoader />
                         ) : (
-                            <Button type="submit" onClick={handleLogin}>
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                onClick={handleLogin}
+                            >
                                 Submit
                             </Button>
                         )}
                         <Button
                             variant="ghost"
+                            className="w-full"
                             onClick={() => navigate("/register")}
                         >
-                            <FaRegistered className="mr-1" />
-                            Register
+                            <FaRegistered className="mr-1" /> Register
                         </Button>
                     </CardFooter>
                 </Card>

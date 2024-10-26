@@ -2,33 +2,18 @@
   margin: 0;
 }
 
-.app {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #F5F7F8;
-  font-family: Arial, Helvetica, sans-serif;
-
+.list-item {
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
 }
 
-.visible {
-  display: static;
-}
-
-.invisible {
-  display: none;
-}
-
-.blur {
-  opacity: 0.5;
-}
-
-.noblur {
-  opacity: 2;
-}
-
-.highLight {
-  background-color: blue;
+@keyframes fadeIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

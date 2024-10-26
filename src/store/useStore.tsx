@@ -21,6 +21,7 @@ interface ChatStore {
     setMessages: (messages: Messages) => void;
     setUser: (user: User | null) => void;
     setChatList: (chatList: SingleChat[]) => void;
+    removeChat: (chatId: string) => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
@@ -42,6 +43,10 @@ const useChatStore = create<ChatStore>((set) => ({
         set(() => ({ user }));
     },
     setChatList: (chatList) => set(() => ({ chatList })),
+    removeChat: (chatId: string) =>
+        set((state) => ({
+            chatList: state.chatList.filter((chat) => chat.id !== chatId),
+        })),
 }));
 
 export default useChatStore;

@@ -3,7 +3,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px;
-    border-bottom: 1px solid #E7F0DC;
+    border-bottom: 1px solid #e7f0dc;
 }
 
 .menu {
@@ -60,7 +60,7 @@
 }
 .chat > p {
     word-wrap: break-word;
-    overflow-wrap: break-word; 
+    overflow-wrap: break-word;
     color: #332f39;
     font-family: Arial, Helvetica, sans-serif;
 }
@@ -97,4 +97,15 @@
     left: 25px;
     bottom: 40px;
     z-index: 1000;
+}
+
+@keyframes fadeIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

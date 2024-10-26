@@ -34,16 +34,16 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
     useEffect(() => {
         if (!socket) return;
 
-        socket.on("createChat", (newChat: any) => {
+        socket.on("createChat", (data) => {
             const otherParticipant =
-                newChat.participants[0].email === user?.email
-                        ? newChat.participants[1]
-                        : newChat.participants[0];
+                data.newChat.participants[0].email === user?.email
+                        ? data.newChat.participants[1]
+                        : data.newChat.participants[0];
 
             const newChatExtract: SingleChat = {
-                id: newChat._id,
-                createdAt: newChat.createdAt,
-                updatedAt: newChat.updatedAt,
+                id: data.newChat._id,
+                createdAt: data.newChat.createdAt,
+                updatedAt: data.newChat.updatedAt,
                 participant: {
                     username: otherParticipant.username,
                     profilePic: otherParticipant.profilePic,
@@ -52,7 +52,10 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
             }
             
             addChat(newChatExtract)
-
+            toast({
+                title: "Chat Added",
+                description: `${data.message}`,
+            });
         });
 
         return () => {
@@ -142,7 +145,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                             return (
                                 <div
                                     key={chat.id}
-                                    className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
+                                    className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 list-item"
                                     onClick={() => setSelectedChat(indx)}
                                     style={{background: `${selectedChat === indx ? '#E5E7EB': ''}`}}
                                 >

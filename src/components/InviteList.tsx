@@ -99,13 +99,8 @@ const InviteList = () => {
                 newUserEmail: email,
             });
             if (resp.data.status === "SUCCESS") {
-                toast(resp.data.message);
                 filterInviteList(email);
-            } else if (resp.data.status === "failed") {
-                toast(resp.data.message);
-            } else {
-                toast({ title: "Unexpected response received." });
-            }
+            } 
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -158,7 +153,18 @@ const InviteList = () => {
                 <CollapsibleTrigger asChild>
                     <div className="p-5 w-full bg-slate-50 cursor-pointer text-xl flex justify-between">
                         Invite's
-                        {inviteIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                        <div className="flex gap-2 items-center">
+                            {InviteList.length > 0 && (
+                                <p className="bg-red-300 rounded-full pl-2 pr-2">
+                                    {InviteList.length}
+                                </p>
+                            )}
+                            {inviteIsOpen ? (
+                                <IoIosArrowUp />
+                            ) : (
+                                <IoIosArrowDown />
+                            )}
+                        </div>
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

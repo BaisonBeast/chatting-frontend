@@ -5,7 +5,6 @@ import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { CiMicrophoneOn } from "react-icons/ci";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { io, Socket } from "socket.io-client";
 import useChatStore from "../store/useStore";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { AiOutlineClose } from "react-icons/ai";
@@ -17,18 +16,30 @@ import {
 } from "@/components/ui/popover";
 import moment from "moment";
 import { useSocket } from "@/context/SocketContext";
+import blank_image from "../assets/blank_image.jpg";
+import { useToast } from "@/hooks/use-toast";
+import { PopoverClose } from "@radix-ui/react-popover";
 
 const API_URL = import.meta.env.VITE_API_URL;
-let socket: Socket | null = null;
 
 const ChatArea = () => {
-    const { messages, addMessage, setMessages, user, selectedChat, chatList } =
-        useChatStore();
+    const {
+        removeChat,
+        addMessage,
+        setMessages,
+        user,
+        selectedChat,
+        chatList,
+        messages,
+        setSelectedChat,
+    } = useChatStore();
     const [showCrossIcon, setShowCrossIcon] = useState(false);
     const [newMessage, setNewMessage] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [chatId, setChatId] = useState("");
     const containerRef = useRef<HTMLDivElement | null>(null);
+
+    const { toast } = useToast();
     const { socket } = useSocket();
 
     useEffect(() => {
@@ -52,10 +63,21 @@ const ChatArea = () => {
             addMessage(data.message);
         });
 
+        socket.on("removeChat", (data) => {
+            toast({
+                title: "Chat removed",
+                description: `${data.message}`,
+            });
+            const chatId = data.chatId;
+            removeChat(chatId);
+            setSelectedChat(-1);
+        });
+
         return () => {
             if (socket) {
                 socket.off("newMessage");
-                socket.emit("leaveChat", chatId);
+                socket.off("removeChat");
+                socket.emit("leaveChat");
             }
         };
     }, [socket]);
@@ -66,8 +88,21 @@ const ChatArea = () => {
                 `${API_URL}/api/messages/allMessage/${chatId}`
             );
             setMessages(fetchedMessages.data.data);
-        } catch (error) {
-            console.error("Error fetching chat messages:", error);
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+
+                toast({
+                    title: "Please try again",
+                    description: `${message}`,
+                });
+            } else {
+                toast({
+                    title: "Something went wrong",
+                    description: "Please try again after some time...",
+                });
+            }
+            console.error(err);
         }
     };
 
@@ -90,23 +125,55 @@ const ChatArea = () => {
                         `${API_URL}/api/messages/newMessage/${chatId}`,
                         messageData
                     );
-                } catch (error) {
-                    console.error("Error sending message:", error);
+                } catch (err: any) {
+                    if (err.response && err.response.data) {
+                        const { message } = err.response.data;
+
+                        toast({
+                            title: "Please try again",
+                            description: `${message}`,
+                        });
+                    } else {
+                        toast({
+                            title: "Something went wrong",
+                            description: "Please try again after some time...",
+                        });
+                    }
+                    console.error(err);
                 }
             }
         }
     };
-    // const handleDeleteChat = async () => {
-    //     try {
-    //         const res = await axios.delete(
-    //             `${API_URL}/api/chat/deleteChat/${chatId}`
-    //         );
-    //         console.log(res);
-    //         deleteChatList(chatId as string);
-    //     } catch (error) {
-    //         console.error("Error deleting chat:", error);
-    //     }
-    // };
+
+    const handleDeleteChat = async () => {
+        try {
+            const res = await axios.delete(
+                `${API_URL}/api/chat/deleteChat/${chatId}`,
+                {
+                    data: {
+                        loggedUserEmail: user?.email,
+                        otherSideUserEmail:
+                            chatList[selectedChat].participant.email,
+                    },
+                }
+            );
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+
+                toast({
+                    title: "Please try again",
+                    description: `${message}`,
+                });
+            } else {
+                toast({
+                    title: "Something went wrong",
+                    description: "Please try again after some time...",
+                });
+            }
+            console.error(err);
+        }
+    };
 
     const onEmojiClick = (emojidata: EmojiClickData) => {
         setNewMessage((prevMessage) => prevMessage + emojidata.emoji);
@@ -145,16 +212,16 @@ const ChatArea = () => {
                         <AvatarImage
                             src={
                                 selectedChat !== -1
-                                    ? chatList[selectedChat].participant
-                                          .profilePic
+                                    ? chatList[selectedChat]?.participant
+                                          ?.profilePic
                                     : "https://github.com/shadcn.png"
                             }
                         />
                         <AvatarFallback>
                             {selectedChat !== -1
                                 ? getInitials(
-                                      chatList[selectedChat].participant
-                                          .username
+                                      chatList[selectedChat]?.participant
+                                          ?.username as string
                                   )
                                 : "CN"}
                         </AvatarFallback>
@@ -175,12 +242,14 @@ const ChatArea = () => {
                             />
                         </PopoverTrigger>
                         <PopoverContent className="w-56 flex flex-col items-start">
-                            <div
-                                className="cursor-pointer w-full pl-2"
-                                // onClick={handleDeleteChat}
-                            >
-                                Delete chat
-                            </div>
+                            <PopoverClose>
+                                <div
+                                    className="cursor-pointer w-full pl-2"
+                                    onClick={handleDeleteChat}
+                                >
+                                    Delete chat
+                                </div>
+                            </PopoverClose>
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -193,8 +262,8 @@ const ChatArea = () => {
                 }}
                 ref={containerRef}
             >
-                {messages &&
-                    messages.map((message, id) => {
+                {selectedChat !== -1 ? (
+                    messages?.map((message, id) => {
                         const day = calculateDaysAgo(message.updatedAt);
                         return (
                             <div
@@ -205,6 +274,7 @@ const ChatArea = () => {
                                         : "left"
                                 }
                                 rounded-br-2xl
+                                list-item
                                 `}
                             >
                                 <p>{message.message}</p>
@@ -219,52 +289,57 @@ const ChatArea = () => {
                                 )}`}</h6>
                             </div>
                         );
-                    })}
+                    })
+                ) : (
+                    <img className="h-full w-full" src={blank_image} />
+                )}
             </div>
-            <footer className="flex gap-3 rounded items-center relative pl-2 pr-2 bg-slate-100">
-                <MdOutlineEmojiEmotions
-                    className="cursor-pointer"
-                    size={25}
-                    color="black"
-                    onClick={() => {
-                        setShowEmojiPicker((prev) => !prev);
-                        setShowCrossIcon((prev) => !prev);
-                    }}
-                />
-                <div className="emoji-container">
-                    {showCrossIcon && (
-                        <AiOutlineClose
-                            className="z-10 absolute top-1 right-1 cursor-pointer"
-                            size={20}
-                            onClick={() => {
-                                setShowEmojiPicker(false);
-                                setShowCrossIcon((prev) => !prev);
-                            }}
-                        />
-                    )}
-                    {showEmojiPicker && (
-                        <EmojiPicker
-                            onEmojiClick={onEmojiClick}
-                            height={350}
-                            width={300}
-                            className="cursor-pointer"
-                            skinTonesDisabled
-                        />
-                    )}
-                </div>
-                <textarea
-                    className="bg-slate-50  outline-none p-2 text-xl rounded flex-wrap w-full resize-none tracking-wider"
-                    placeholder="Enter message"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={handleSendMessage}
-                />
-                <CiMicrophoneOn
-                    className={"cursor-pointer"}
-                    size={25}
-                    color="black"
-                />
-            </footer>
+            {selectedChat !== -1 && (
+                <footer className="flex gap-3 rounded items-center relative pl-2 pr-2 bg-slate-100">
+                    <MdOutlineEmojiEmotions
+                        className="cursor-pointer"
+                        size={25}
+                        color="black"
+                        onClick={() => {
+                            setShowEmojiPicker((prev) => !prev);
+                            setShowCrossIcon((prev) => !prev);
+                        }}
+                    />
+                    <div className="emoji-container">
+                        {showCrossIcon && (
+                            <AiOutlineClose
+                                className="z-10 absolute top-1 right-1 cursor-pointer"
+                                size={20}
+                                onClick={() => {
+                                    setShowEmojiPicker(false);
+                                    setShowCrossIcon((prev) => !prev);
+                                }}
+                            />
+                        )}
+                        {showEmojiPicker && (
+                            <EmojiPicker
+                                onEmojiClick={onEmojiClick}
+                                height={350}
+                                width={300}
+                                className="cursor-pointer"
+                                skinTonesDisabled
+                            />
+                        )}
+                    </div>
+                    <textarea
+                        className="bg-slate-50  outline-none p-2 text-xl rounded flex-wrap w-full resize-none tracking-wider"
+                        placeholder="Enter message"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={handleSendMessage}
+                    />
+                    <CiMicrophoneOn
+                        className={"cursor-pointer"}
+                        size={25}
+                        color="black"
+                    />
+                </footer>
+            )}
         </div>
     );
 };

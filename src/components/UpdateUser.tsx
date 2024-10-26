@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RxCross2 } from "react-icons/rx";
 import axios from "axios";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { HashLoader } from "react-spinners";
 
 const images = [1, 2, 3, 4];
@@ -28,6 +28,7 @@ const UpdateUser = () => {
     const [profilePic, setProfilePic] = useState<File | null>(null);
     const [imageUrl, setImageUrl] = useState<string>("");
     const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
