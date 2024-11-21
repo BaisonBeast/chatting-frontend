@@ -58,11 +58,20 @@ const InviteList = () => {
                 },
             });
             setInviteList(resp.data.data);
-        } catch (err) {
-            toast({
-                title: "Something went wrong",
-                description: "Please try again after some time...",
-            });
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+                toast({
+                    title: "Invalid credentials",
+                    description: `${message}`,
+                });
+            } else {
+                toast({
+                    title: "Something went wrong",
+                    description: "Please try again after some time...",
+                });
+            }
+            console.error(err);
         }
     };
 

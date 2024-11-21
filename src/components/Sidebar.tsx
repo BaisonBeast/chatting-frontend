@@ -3,11 +3,6 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { MdOutlineMessage } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -19,8 +14,6 @@ import useChatStore from "../store/useStore";
 import { io, Socket } from "socket.io-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { IoIosArrowDown } from "react-icons/io";
-import { IoIosArrowUp } from "react-icons/io";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { HashLoader } from "react-spinners";
@@ -28,6 +21,7 @@ import UpdateUser from "./UpdateUser";
 import { PopoverClose } from "@radix-ui/react-popover";
 import InviteList from "./InviteList";
 import ChatList from "./ChatList";
+import GroupList from "./GroupList";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -37,8 +31,6 @@ const Sidebar = () => {
     const { addChat, setUser, user } = useChatStore();
 
     const [searchTerm, setSearchTerm] = useState<string>("");
-    const [groupIsOpen, setGroupIsOpen] = useState(false);
-    const [groupList, setGroupList] = useState([]);
     const [inviteEmail, setInviteEmail] = useState("");
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -200,68 +192,7 @@ const Sidebar = () => {
                 <ChatList searchTerm={searchTerm} />
 
                 {/* Group List */}
-                <div className="w-full max-w-md mx-auto">
-                    <Collapsible
-                        open={groupIsOpen}
-                        onOpenChange={setGroupIsOpen}
-                    >
-                        <CollapsibleTrigger asChild>
-                            <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between">
-                                Group's
-                                {groupIsOpen ? (
-                                    <IoIosArrowUp />
-                                ) : (
-                                    <IoIosArrowDown />
-                                )}
-                            </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            <div>
-                                {groupList.length > 0 ? (
-                                    groupList.map((chat, indx) => (
-                                        <div
-                                            key={indx}
-                                            className="flex items-center justify-between px-4 py-2 bg-gray-100 rounded-md"
-                                        >
-                                            <div className="flex items-center">
-                                                <Avatar>
-                                                    {/* {groupList.avatar ? (
-                                                        <AvatarImage
-                                                            src={
-                                                                groupList.avatar
-                                                            }
-                                                            alt={
-                                                                groupList.username
-                                                            }
-                                                        />
-                                                    ) : (
-                                                        <AvatarFallback>
-                                                            {getInitials(
-                                                                chat.chatName
-                                                            )}
-                                                        </AvatarFallback>
-                                                    )} */}
-                                                </Avatar>
-                                                <span className="ml-2 font-medium">
-                                                    {/* {groupList.username} */}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                {/* {moment(
-                                                    groupList.chatTime
-                                                ).format("LT")} */}
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-600 bg-slate-200 pt-3 pb-3 pl-3">
-                                        Please create groups....
-                                    </p>
-                                )}
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
-                </div>
+                <GroupList />
             </div>
         </div>
     );

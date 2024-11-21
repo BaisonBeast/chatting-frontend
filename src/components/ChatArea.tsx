@@ -14,11 +14,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import moment from "moment";
 import { useSocket } from "@/context/SocketContext";
 import blank_image from "../assets/blank_image.jpg";
 import { useToast } from "@/hooks/use-toast";
 import { PopoverClose } from "@radix-ui/react-popover";
+import SingleMessage from "./SingleMessage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -38,6 +38,7 @@ const ChatArea = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [chatId, setChatId] = useState("");
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const [messagesToShow, setMessagesToShow] = useState(20);
 
     const { toast } = useToast();
     const { socket } = useSocket();
@@ -60,6 +61,7 @@ const ChatArea = () => {
         if (!socket) return;
 
         socket.on("newMessage", (data) => {
+            console.log(data)
             addMessage(data.message);
         });
 
@@ -81,6 +83,33 @@ const ChatArea = () => {
             }
         };
     }, [socket]);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (container) {
+            container.addEventListener("scroll", handleScroll);
+        }
+
+        return () => {
+            if (container) {
+                container.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, []);
+
+    const handleScroll = () => {
+        if (containerRef.current && containerRef.current.scrollTop === 0) {
+            if (messagesToShow < messages.length) {
+                setMessagesToShow((prev) =>
+                    Math.min(prev + 20, messages.length)
+                );
+            }
+        }
+    };
+
+    const displayedMessages = messages.slice(
+        Math.max(messages.length - messagesToShow, 0)
+    );
 
     const fetchMessages = async () => {
         try {
@@ -113,12 +142,11 @@ const ChatArea = () => {
             e.preventDefault();
             if (newMessage.trim()) {
                 const messageData = {
-                    senderName: user?.username,
                     message: newMessage,
                     loggedInUser: user?.email,
                     otherSideUser: chatList[selectedChat].participant.email,
+                    messageType: 'text'
                 };
-
                 try {
                     setNewMessage("");
                     const res = await axios.post(
@@ -179,16 +207,6 @@ const ChatArea = () => {
         setNewMessage((prevMessage) => prevMessage + emojidata.emoji);
     };
 
-    const calculateDaysAgo = (isoDate: string) => {
-        const pastDate = new Date(isoDate);
-        const currentDate = new Date();
-        const differenceInMs = currentDate.getTime() - pastDate.getTime();
-        const differenceInDays = Math.floor(
-            differenceInMs / (24 * 60 * 60 * 1000)
-        );
-        return differenceInDays;
-    };
-
     function getInitials(name: string) {
         const words = name.trim().split(/\s+/);
         if (words.length === 1) {
@@ -233,7 +251,24 @@ const ChatArea = () => {
                     </h2>
                 </div>
                 <div className="flex gap-5">
-                    <IoIosAttach size={25} className="cursor-pointer" />
+                    <Popover>
+                        <PopoverTrigger>
+                            <IoIosAttach size={25} className="cursor-pointer" />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 flex flex-col  ">
+                            <PopoverClose className="w-full">
+                                <div className="cursor-pointer w-full p-2 hover:bg-gray-200 text-start">
+                                    Attach photo
+                                </div>
+                                <div className="cursor-pointer w-full p-2 hover:bg-gray-200  text-start">
+                                    Attach Video
+                                </div>
+                                <div className="cursor-pointer w-full p-2 hover:bg-gray-200  text-start">
+                                    Attach file
+                                </div>
+                            </PopoverClose>
+                        </PopoverContent>
+                    </Popover>
                     <Popover>
                         <PopoverTrigger>
                             <BsThreeDotsVertical
@@ -256,39 +291,21 @@ const ChatArea = () => {
             </nav>
             <div
                 className="flex flex-col flex-grow overflow-y-auto"
-                style={{
-                    backgroundImage: `url(${user?.background}.png)`,
-                    filter: "grayscale(10%) contrast(80%)",
-                }}
+                style={
+                    user
+                        ? {
+                              backgroundImage: `url(${
+                                  user.background + 1
+                              }.png)`,
+                              filter: "grayscale(10%) contrast(80%)",
+                          }
+                        : undefined
+                }
                 ref={containerRef}
             >
                 {selectedChat !== -1 ? (
-                    messages?.map((message, id) => {
-                        const day = calculateDaysAgo(message.updatedAt);
-                        return (
-                            <div
-                                key={id}
-                                className={`chat ${
-                                    message.senderName === user?.username
-                                        ? "right"
-                                        : "left"
-                                }
-                                rounded-br-2xl
-                                list-item
-                                `}
-                            >
-                                <p>{message.message}</p>
-                                <h6>{`${
-                                    day === 0
-                                        ? "Today at"
-                                        : day === 1
-                                        ? "Yesterday at"
-                                        : `${day} days ago at`
-                                } ${moment(message.updatedAt).format(
-                                    "LT"
-                                )}`}</h6>
-                            </div>
-                        );
+                    displayedMessages?.map((message, id) => {
+                        return <SingleMessage message={message} id={id} />;
                     })
                 ) : (
                     <img className="h-full w-full" src={blank_image} />
@@ -308,7 +325,7 @@ const ChatArea = () => {
                     <div className="emoji-container">
                         {showCrossIcon && (
                             <AiOutlineClose
-                                className="z-10 absolute top-1 right-1 cursor-pointer"
+                                className="z-10 absolute top-0 right-1 cursor-pointer"
                                 size={20}
                                 onClick={() => {
                                     setShowEmojiPicker(false);
@@ -318,7 +335,11 @@ const ChatArea = () => {
                         )}
                         {showEmojiPicker && (
                             <EmojiPicker
-                                onEmojiClick={onEmojiClick}
+                                onEmojiClick={(emojidata) => {
+                                    onEmojiClick(emojidata);
+                                    setShowEmojiPicker((prev) => !prev);
+                                    setShowCrossIcon((prev) => !prev);
+                                }}
                                 height={350}
                                 width={300}
                                 className="cursor-pointer"

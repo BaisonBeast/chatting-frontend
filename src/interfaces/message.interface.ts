@@ -1,10 +1,11 @@
 export interface Message {
-    senderName: string;
+    senderEmail: string;
     message: string;
+    messageType: string;
     isDeleted: boolean;
     isEdited: boolean;
-    like: number;
-    id: string;
+    like: [string];
+    _id: string;
     createdAt: string;
     updatedAt: string;
 }

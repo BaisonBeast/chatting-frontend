@@ -145,7 +145,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                             return (
                                 <div
                                     key={chat.id}
-                                    className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 list-item"
+                                    className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
                                     onClick={() => setSelectedChat(indx)}
                                     style={{background: `${selectedChat === indx ? '#E5E7EB': ''}`}}
                                 >
@@ -175,7 +175,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                             {chat.participant.username}
                                         </span>
                                     </div>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="space-x-2">
                                         {moment(chat.updatedAt).format("LT")}
                                     </div>
                                 </div>
