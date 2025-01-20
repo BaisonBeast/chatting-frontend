@@ -21,7 +21,14 @@ interface ChatListProps {
 }
 
 const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
-    const { user, setSelectedChat, selectedChat, chatList, setChatList, addChat } = useChatStore();
+    const {
+        user,
+        setSelectedChat,
+        selectedChat,
+        chatList,
+        setChatList,
+        addChat,
+    } = useChatStore();
     const { toast } = useToast();
     const { socket } = useSocket();
 
@@ -37,8 +44,8 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
         socket.on("createChat", (data) => {
             const otherParticipant =
                 data.newChat.participants[0].email === user?.email
-                        ? data.newChat.participants[1]
-                        : data.newChat.participants[0];
+                    ? data.newChat.participants[1]
+                    : data.newChat.participants[0];
 
             const newChatExtract: SingleChat = {
                 id: data.newChat._id,
@@ -49,9 +56,9 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                     profilePic: otherParticipant.profilePic,
                     email: otherParticipant.email,
                 },
-            }
-            
-            addChat(newChatExtract)
+            };
+
+            addChat(newChatExtract);
             toast({
                 title: "Chat Added",
                 description: `${data.message}`,
@@ -134,7 +141,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
         <div className="w-full max-w-md mx-auto">
             <Collapsible open={chatIsOpen} onOpenChange={setchatIsOpen}>
                 <CollapsibleTrigger asChild>
-                    <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between">
+                    <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
                         Chat's
                         {chatIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
                     </div>
@@ -147,7 +154,13 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                     key={chat.id}
                                     className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
                                     onClick={() => setSelectedChat(indx)}
-                                    style={{background: `${selectedChat === indx ? '#E5E7EB': ''}`}}
+                                    style={{
+                                        background: `${
+                                            selectedChat === indx
+                                                ? "#E5E7EB"
+                                                : ""
+                                        }`,
+                                    }}
                                 >
                                     <div className="flex items-center">
                                         <Avatar>
@@ -172,7 +185,13 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                             )}
                                         </Avatar>
                                         <span className="ml-2 font-medium">
-                                            {chat.participant.username}
+                                            {chat.participant.username.length >
+                                            20
+                                                ? chat.participant.username.slice(
+                                                    0,
+                                                    20
+                                                ) + "..."
+                                                : chat.participant.username}
                                         </span>
                                     </div>
                                     <div className="space-x-2">

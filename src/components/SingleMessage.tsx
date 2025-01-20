@@ -21,7 +21,6 @@ interface SingleMessageProps {
 const API_URL = import.meta.env.VITE_API_URL;
 
 const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
-    console.log(message)
     const calculateDaysAgo = (isoDate: string) => {
         const pastDate = new Date(isoDate);
         const currentDate = new Date();
@@ -67,7 +66,7 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
             key={id}
             onMouseEnter={() => setShowMenuIcon(true)}
             onMouseLeave={() => setShowMenuIcon(false)}
-            className={`relative  max-w-sm	m-3 p-3 rounded-br-2xl list-item
+            className={`relative  max-w-sm	m-3 p-3 rounded-br-2xl
                         ${
                             message.senderEmail === user?.email
                                 ? "right"
@@ -76,7 +75,7 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                         `}
         >
             <div className="flex flex-col">
-                <p className="text-lg">
+                <p className="text-lg font-medium">
                     {message.isDeleted ? <BiSolidErrorAlt /> : message.message}
                 </p>
                 <h6 className="text-[10px] text-end">{`${

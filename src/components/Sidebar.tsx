@@ -134,20 +134,32 @@ const Sidebar = () => {
                                 className="mr-4 cursor-pointer"
                             />
                         </PopoverTrigger>
-                        <PopoverContent className="flex justify-center bg-slate-50 h-60 w-60">
-                            <div className=" w-[98%] bg-slate-100 rounded flex flex-col justify-center items-center gap-5">
-                                <h2>Invite a friend</h2>
+                        <PopoverContent className="flex justify-center bg-white shadow-lg rounded-lg h-64 w-72">
+                            <div className="w-[90%] bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center gap-4">
+                                <h2 className="text-xl font-semibold text-gray-700">
+                                    🤝 Invite a Friend
+                                </h2>
                                 <Input
-                                    placeholder="Email"
-                                    className="w-[95%]"
+                                    placeholder="Enter your friend's email"
+                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     value={inviteEmail}
                                     onChange={(e) =>
                                         setInviteEmail(e.target.value)
                                     }
                                 />
                                 <PopoverClose>
-                                    <Button onClick={handleInvite}>
-                                        {loading ? <HashLoader /> : "Invite"}
+                                    <Button
+                                        onClick={handleInvite}
+                                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+                                    >
+                                        {loading ? (
+                                            <HashLoader
+                                                size={20}
+                                                color="#ffffff"
+                                            />
+                                        ) : (
+                                            "Send Invite"
+                                        )}
                                     </Button>
                                 </PopoverClose>
                             </div>

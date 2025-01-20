@@ -109,7 +109,7 @@ const InviteList = () => {
             });
             if (resp.data.status === "SUCCESS") {
                 filterInviteList(email);
-            } 
+            }
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -160,7 +160,7 @@ const InviteList = () => {
                 className="w-full"
             >
                 <CollapsibleTrigger asChild>
-                    <div className="p-5 w-full bg-slate-50 cursor-pointer text-xl flex justify-between">
+                    <div className="p-5 w-full bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
                         Invite's
                         <div className="flex gap-2 items-center">
                             {InviteList.length > 0 && (
@@ -197,7 +197,11 @@ const InviteList = () => {
                                         )}
                                     </Avatar>
                                     <span className="ml-2 font-medium">
-                                        {invite.username}
+                                        {invite.username.length > 20
+                                            ? invite.username.slice(0, 25) +
+                                                "..."
+                                            : invite.username.slice(0, 25)
+                                        }
                                     </span>
                                 </div>
                                 <div className="flex items-center space-x-2">

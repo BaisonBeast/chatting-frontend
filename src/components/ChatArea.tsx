@@ -15,10 +15,10 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSocket } from "@/context/SocketContext";
-import blank_image from "../assets/blank_image.jpg";
 import { useToast } from "@/hooks/use-toast";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SingleMessage from "./SingleMessage";
+import BlankChatArea from "./BlankChatArea";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -61,7 +61,7 @@ const ChatArea = () => {
         if (!socket) return;
 
         socket.on("newMessage", (data) => {
-            console.log(data)
+            console.log(data);
             addMessage(data.message);
         });
 
@@ -145,7 +145,7 @@ const ChatArea = () => {
                     message: newMessage,
                     loggedInUser: user?.email,
                     otherSideUser: chatList[selectedChat].participant.email,
-                    messageType: 'text'
+                    messageType: "text",
                 };
                 try {
                     setNewMessage("");
@@ -244,7 +244,7 @@ const ChatArea = () => {
                                 : "CN"}
                         </AvatarFallback>
                     </Avatar>
-                    <h2>
+                    <h2 className="font-bold text-emerald-700">
                         {selectedChat !== -1
                             ? chatList[selectedChat].participant.username
                             : "General"}
@@ -305,10 +305,10 @@ const ChatArea = () => {
             >
                 {selectedChat !== -1 ? (
                     displayedMessages?.map((message, id) => {
-                        return <SingleMessage message={message} id={id} />;
+                        return <SingleMessage message={message} id={id} key={id}/>;
                     })
                 ) : (
-                    <img className="h-full w-full" src={blank_image} />
+                    <BlankChatArea />
                 )}
             </div>
             {selectedChat !== -1 && (

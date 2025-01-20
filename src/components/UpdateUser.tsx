@@ -111,15 +111,15 @@ const UpdateUser = () => {
     }
 
     return (
-        <SheetContent className="w-[400px] sm:w-[540px]" side={"left"}>
+        <SheetContent className="w-[400px] sm:w-[540px] bg-gray-100 text-gray-800 p-6" side={"left"}>
             <SheetHeader>
-                <SheetTitle>Edit profile</SheetTitle>
-                <SheetDescription>
+                <SheetTitle className="text-2xl font-semibold">Edit profile</SheetTitle>
+                <SheetDescription className="text-gray-600">
                     Make changes to your profile here. Click save when you're
                     done.
                 </SheetDescription>
             </SheetHeader>
-            <p>{user?.email}</p>
+            <p className="text-gray-600">Email: <span className="font-bold">{user?.email}</span></p>
             <div className="flex mt-10 mb-10 gap-10 items-center justify-center">
                 <Avatar className="w-28 h-28">
                     <AvatarImage
@@ -129,13 +129,13 @@ const UpdateUser = () => {
                         {getInitials(user?.username as string)}
                     </AvatarFallback>
                 </Avatar>
-                <div className="text-lg">
+                <div className="text-lg truncate w-32">
                     {username === "" ? user?.username : username}
                 </div>
             </div>
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="username" className="text-right">
+                    <Label htmlFor="username" className="text-right text-gray-600">
                         Username
                     </Label>
                     <Input
@@ -143,6 +143,7 @@ const UpdateUser = () => {
                         value={username}
                         className="col-span-3"
                         onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Enter new username"
                     />
                 </div>
                 <div className="flex flex-col gap-4">
@@ -186,7 +187,7 @@ const UpdateUser = () => {
                     ) : null}
                 </div>
             </div>
-            <SheetFooter>
+            <SheetFooter className="flex justify-center items-center">
                 {loading ? (
                     <HashLoader />
                 ) : (
