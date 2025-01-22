@@ -61,7 +61,6 @@ const ChatArea = () => {
         if (!socket) return;
 
         socket.on("newMessage", (data) => {
-            console.log(data);
             addMessage(data.message);
         });
 
@@ -134,7 +133,6 @@ const ChatArea = () => {
             console.error(err);
         }
     };
-
     const handleSendMessage = async (
         e: React.KeyboardEvent<HTMLTextAreaElement>
     ) => {

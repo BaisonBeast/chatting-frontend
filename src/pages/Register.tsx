@@ -41,6 +41,15 @@ export function Register() {
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            toast({
+                title: "Invalid Email",
+                description: "Please enter a valid email address.",
+            });
+            return;
+        }
         const formData = new FormData();
         formData.append("email", email);
         formData.append("password", password);

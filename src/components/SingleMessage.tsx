@@ -37,7 +37,6 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     const [showMenuIcon, setShowMenuIcon] = useState<boolean>(false);
 
     const handleDeleteMessage = async (id: string) => {
-        console.log(id)
         await axios.delete(`${API_URL}/api/messages/delete/${id}`, {
             data: {
                 loggedUserEmail: user?.email,
