@@ -22,6 +22,8 @@ interface ChatStore {
     setUser: (user: User | null) => void;
     setChatList: (chatList: SingleChat[]) => void;
     removeChat: (chatId: string) => void;
+    addLike: (messageId: string, name: string) => void;
+    deleteMessage: (messageId: string) => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
@@ -47,6 +49,22 @@ const useChatStore = create<ChatStore>((set) => ({
         set((state) => ({
             chatList: state.chatList.filter((chat) => chat.id !== chatId),
         })),
+    addLike: (messageId, name) =>
+        set((state) => ({
+            messages: state.messages.map((message) =>
+                message._id === messageId
+                    ? { ...message, like: [...message.like, name] }
+                    : message
+            ),
+        })),
+        deleteMessage: (messageId) =>
+            set((state) => ({
+                messages: state.messages.map((message) =>
+                    message._id === messageId
+                        ? { ...message, isDeleted: true, message: '' }
+                        : message
+                ),
+            })),
 }));
 
 export default useChatStore;

@@ -38,7 +38,8 @@ const ChatArea = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [chatId, setChatId] = useState("");
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const [messagesToShow, setMessagesToShow] = useState(20);
+    // const [messagesToShow, setMessagesToShow] = useState(20);
+    const [suggestionsToShow, setSuggestionsToShow] = useState([]);
 
     const { toast } = useToast();
     const { socket } = useSocket();
@@ -47,14 +48,19 @@ const ChatArea = () => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
+        handleFetchSuggestions();
     }, [messages]);
 
     useEffect(() => {
-        if (selectedChat !== -1) setChatId(chatList[selectedChat].id);
+        if (selectedChat !== -1) {
+            setChatId(chatList[selectedChat].id);
+        }
     }, [selectedChat]);
 
     useEffect(() => {
-        if (chatId !== "") fetchMessages();
+        if (chatId !== "") {
+            fetchMessages();
+        }
     }, [chatId]);
 
     useEffect(() => {
@@ -83,39 +89,11 @@ const ChatArea = () => {
         };
     }, [socket]);
 
-    useEffect(() => {
-        const container = containerRef.current;
-        if (container) {
-            container.addEventListener("scroll", handleScroll);
-        }
-
-        return () => {
-            if (container) {
-                container.removeEventListener("scroll", handleScroll);
-            }
-        };
-    }, []);
-
-    const handleScroll = () => {
-        if (containerRef.current && containerRef.current.scrollTop === 0) {
-            if (messagesToShow < messages.length) {
-                setMessagesToShow((prev) =>
-                    Math.min(prev + 20, messages.length)
-                );
-            }
-        }
-    };
-
-    const displayedMessages = messages.slice(
-        Math.max(messages.length - messagesToShow, 0)
-    );
-
-    const fetchMessages = async () => {
+    const handleFetchSuggestions = async() => {
+        if(messages.length === 0) return;
         try {
-            const fetchedMessages = await axios.get(
-                `${API_URL}/api/messages/allMessage/${chatId}`
-            );
-            setMessages(fetchedMessages.data.data);
+            const resp = await axios.get(`${API_URL}/api/chat/chatSuggestion?textContent=${messages[messages.length - 1].message}`);
+            setSuggestionsToShow(resp.data.split(','));
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -132,7 +110,27 @@ const ChatArea = () => {
             }
             console.error(err);
         }
+    }
+
+    const fetchMessages = async () => {
+        try {
+            const fetchedMessages = await axios.get(
+                `${API_URL}/api/messages/allMessage/${chatId}`
+            );
+            setMessages(fetchedMessages.data.data);
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+
+                toast({
+                    title: "Please try again",
+                    description: `${message}`,
+                });
+            } 
+            console.error(err);
+        }
     };
+
     const handleSendMessage = async (
         e: React.KeyboardEvent<HTMLTextAreaElement>
     ) => {
@@ -170,6 +168,39 @@ const ChatArea = () => {
             }
         }
     };
+
+    useEffect(() => {
+        const debounceTimer = setTimeout(() => {
+            if (newMessage.trim()) {
+                handleFetchAutoComplete();
+            }
+        }, 800);
+
+        return () => clearTimeout(debounceTimer); 
+    }, [newMessage]);
+
+    const handleFetchAutoComplete = async() => {
+        if(!newMessage.trim()) return;
+        try {
+            const resp = await axios.get(`${API_URL}/api/chat/replySuggestion?textContent=${newMessage}`);
+            setSuggestionsToShow(resp.data.split(','));
+        } catch (err: any) {
+            if (err.response && err.response.data) {
+                const { message } = err.response.data;
+
+                toast({
+                    title: "Please try again",
+                    description: `${message}`,
+                });
+            } else {
+                toast({
+                    title: "Something went wrong",
+                    description: "Please try again after some time...",
+                });
+            }
+            console.error(err);
+        }
+    }
 
     const handleDeleteChat = async () => {
         try {
@@ -302,7 +333,7 @@ const ChatArea = () => {
                 ref={containerRef}
             >
                 {selectedChat !== -1 ? (
-                    displayedMessages?.map((message, id) => {
+                    messages?.map((message, id) => {
                         return <SingleMessage message={message} id={id} key={id}/>;
                     })
                 ) : (
@@ -345,12 +376,32 @@ const ChatArea = () => {
                             />
                         )}
                     </div>
+                    <div className="flex absolute mb-28 ml-5 gap-10">
+                        {
+                            suggestionsToShow.map((suggestion: string, indx) => {
+                                return (
+                                    <div
+                                        key={indx}
+                                        className="cursor-pointer bg-blue-200 bg-opacity-1 hover:bg-gray-500 p-1 text-md rounded-md font-bold"
+                                        onClick={() => {
+                                            setNewMessage(newMessage + suggestion);
+                                        }}
+                                    >
+                                        {suggestion.trim().length > 0 ? suggestion : null}
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
                     <textarea
                         className="bg-slate-50  outline-none p-2 text-xl rounded flex-wrap w-full resize-none tracking-wider"
                         placeholder="Enter message"
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e) => {
+                            setNewMessage(e.target.value);
+                        }}
                         onKeyDown={handleSendMessage}
+                        autoFocus
                     />
                     <CiMicrophoneOn
                         className={"cursor-pointer"}

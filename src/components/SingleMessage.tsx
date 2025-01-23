@@ -6,7 +6,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import useChatStore from "@/store/useStore";
-import { Message, Messages } from "@/interfaces/message.interface";
+import { Message } from "@/interfaces/message.interface";
 import moment from "moment";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { BiSolidErrorAlt } from "react-icons/bi";
@@ -35,19 +35,23 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     const { toast } = useToast();
     const { socket } = useSocket();
     const day = calculateDaysAgo(message.updatedAt);
-    const { user, messages, chatList, selectedChat, setMessages } =
+    const { user, chatList, selectedChat, addLike, deleteMessage } =
         useChatStore();
     const [showMenuIcon, setShowMenuIcon] = useState<boolean>(false);
 
     const handleDeleteMessage = async (id: string) => {
         try {
-            await axios.delete(`${API_URL}/api/messages/delete/${id}`, {
-                data: {
-                    loggedUserEmail: user?.email,
-                    otherSideUserEmail:
-                        chatList[selectedChat].participant.email,
-                },
-            });
+            const resp = await axios.delete(
+                `${API_URL}/api/messages/delete/${id}`,
+                {
+                    data: {
+                        loggedUserEmail: user?.email,
+                        otherSideUserEmail:
+                            chatList[selectedChat].participant.email,
+                    },
+                }
+            );
+            console.log(resp);
         } catch (error) {
             console.error(error);
             toast({
@@ -65,7 +69,8 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                 {
                     messageId: message._id,
                     likeGivenUserEmail: user?.email,
-                    otherSideUserEmail: chatList[selectedChat].participant.email,
+                    otherSideUserEmail:
+                        chatList[selectedChat].participant.email,
                 }
             );
             console.log(resp.data);
@@ -90,22 +95,23 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     useEffect(() => {
         if (!socket) return;
 
-        socket.on("deleteMessage", (data) => {});
-        socket.on("likemessage", (data) => {
-            console.log(data);
-            const newMessages: Messages = messages.map((msg) => {
-                if (msg._id === data.messageId) {
-                    msg.like.push(data.email);
-                }
-                return msg;
-            });
-            setMessages(newMessages);
+        const handleLikeMessage = (data: {
+            messageId: string;
+            email: string;
+        }) => {
+            addLike(data.messageId, data.email);
+        };
+
+        socket.on("deleteMessage", (data) => {
+            deleteMessage(data.messageId);
         });
+        socket.removeAllListeners("likemessage");
+        socket.on("likemessage", handleLikeMessage);
 
         return () => {
             if (socket) {
                 socket.off("deleteMessage");
-                socket.off("likemessage");
+                socket.off("likemessage", handleLikeMessage);
                 socket.emit("leaveChat");
             }
         };
@@ -126,7 +132,11 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
         >
             <div className="flex flex-col relative">
                 <p className="text-lg font-medium">
-                    {message.isDeleted ? <BiSolidErrorAlt /> : message.message}
+                    {message.isDeleted ? (
+                        <BiSolidErrorAlt color="red" />
+                    ) : (
+                        message.message
+                    )}
                 </p>
                 <h6 className="text-[10px] text-end">{`${
                     day === 0
@@ -140,6 +150,9 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                         👍{message.like.length}
                     </p>
                 )}
+                {message.isDeleted ? (
+                    <p className="text-[8px] text-end">Deleted</p>
+                ) : null}
             </div>
             <Popover>
                 <PopoverTrigger
@@ -149,14 +162,19 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                             : "right-[5px]"
                     }`}
                 >
+                    {
+                    message.isDeleted === false && 
                     <BsThreeDotsVertical
                         size={25}
                         className={`absolute top-5 cursor-pointer 
                             ${showMenuIcon ? "" : "hidden"}
                             `}
-                    />
+                    /> 
+                    }
                 </PopoverTrigger>
-                <PopoverContent
+                {
+                    message.isDeleted === false && 
+                    <PopoverContent
                     className={`w-56 flex flex-col absolute top-[-10px] ${
                         message.senderEmail === user?.email
                             ? "right-[-17px]"
@@ -164,15 +182,19 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                     }`}
                 >
                     <PopoverClose className="text-start ">
-                        <div className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1 ">
-                            Edit Chat
-                        </div>
-                        <div
-                            className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1"
-                            onClick={() => handleDeleteMessage(message._id)}
-                        >
-                            Delete Chat
-                        </div>
+                        {message.senderEmail === user?.email && (
+                            <div className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1 ">
+                                Edit Chat
+                            </div>
+                        )}
+                        {message.senderEmail === user?.email &&(
+                            <div
+                                className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1"
+                                onClick={() => handleDeleteMessage(message._id)}
+                            >
+                                Delete Chat
+                            </div>
+                        )}
                         <div
                             className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1"
                             onClick={handleLike}
@@ -181,6 +203,7 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                         </div>
                     </PopoverClose>
                 </PopoverContent>
+                }    
             </Popover>
         </div>
     );

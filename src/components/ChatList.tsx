@@ -111,7 +111,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                 participant: {
                     username: otherParticipant.username,
                     profilePic: otherParticipant.profilePic,
-                    email: otherParticipant.parti,
+                    email: otherParticipant.email,
                 },
             };
         });
@@ -128,6 +128,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                 resp.data.data,
                 user?.email as string
             );
+            console.log(result);
             setChatList(result);
         } catch (err) {
             toast({
