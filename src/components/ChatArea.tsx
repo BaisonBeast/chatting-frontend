@@ -2,7 +2,7 @@ import "../css/ChatArea.css";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoIosAttach } from "react-icons/io";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
-import { CiMicrophoneOn } from "react-icons/ci";
+import { CiMicrophoneOn, CiMicrophoneOff } from "react-icons/ci";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import useChatStore from "../store/useStore";
@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SingleMessage from "./SingleMessage";
 import BlankChatArea from "./BlankChatArea";
+import useSpeechToText from "react-hook-speech-to-text";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -38,11 +39,14 @@ const ChatArea = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [chatId, setChatId] = useState("");
     const containerRef = useRef<HTMLDivElement | null>(null);
-    // const [messagesToShow, setMessagesToShow] = useState(20);
     const [suggestionsToShow, setSuggestionsToShow] = useState([]);
-
+    const { isRecording, results, startSpeechToText, stopSpeechToText } =
+        useSpeechToText({
+            continuous: true,
+        });
     const { toast } = useToast();
     const { socket } = useSocket();
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -89,11 +93,15 @@ const ChatArea = () => {
         };
     }, [socket]);
 
-    const handleFetchSuggestions = async() => {
-        if(messages.length === 0) return;
+    const handleFetchSuggestions = async () => {
+        if (messages.length === 0) return;
         try {
-            const resp = await axios.get(`${API_URL}/api/chat/chatSuggestion?textContent=${messages[messages.length - 1].message}`);
-            setSuggestionsToShow(resp.data.split(','));
+            const resp = await axios.get(
+                `${API_URL}/api/chat/chatSuggestion?textContent=${
+                    messages[messages.length - 1].message
+                }`
+            );
+            setSuggestionsToShow(resp.data.split(","));
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -110,7 +118,7 @@ const ChatArea = () => {
             }
             console.error(err);
         }
-    }
+    };
 
     const fetchMessages = async () => {
         try {
@@ -126,7 +134,7 @@ const ChatArea = () => {
                     title: "Please try again",
                     description: `${message}`,
                 });
-            } 
+            }
             console.error(err);
         }
     };
@@ -176,14 +184,16 @@ const ChatArea = () => {
             }
         }, 800);
 
-        return () => clearTimeout(debounceTimer); 
+        return () => clearTimeout(debounceTimer);
     }, [newMessage]);
 
-    const handleFetchAutoComplete = async() => {
-        if(!newMessage.trim()) return;
+    const handleFetchAutoComplete = async () => {
+        if (!newMessage.trim()) return;
         try {
-            const resp = await axios.get(`${API_URL}/api/chat/replySuggestion?textContent=${newMessage}`);
-            setSuggestionsToShow(resp.data.split(','));
+            const resp = await axios.get(
+                `${API_URL}/api/chat/replySuggestion?textContent=${newMessage}`
+            );
+            setSuggestionsToShow(resp.data.split(","));
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -200,7 +210,7 @@ const ChatArea = () => {
             }
             console.error(err);
         }
-    }
+    };
 
     const handleDeleteChat = async () => {
         try {
@@ -251,6 +261,26 @@ const ChatArea = () => {
             words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase()
         );
     }
+
+    useEffect(() => {
+        if (!isRecording && results.length > 0) {
+            const transcripts = results
+                .map((result) =>
+                    result
+                )
+                .join(" ");
+
+            setNewMessage((prev) => prev + " " + transcripts);
+
+            results.splice(0, results.length);
+            inputRef?.current?.focus();
+        }
+    }, [results, isRecording]);
+
+    const handleStopSpeech = () => {
+        stopSpeechToText();
+    };
+
     return (
         <div className="w-3/4 h-screen flex flex-col">
             <nav className="flex h-19 items-center justify-between p-3 bg-slate-50">
@@ -334,7 +364,9 @@ const ChatArea = () => {
             >
                 {selectedChat !== -1 ? (
                     messages?.map((message, id) => {
-                        return <SingleMessage message={message} id={id} key={id}/>;
+                        return (
+                            <SingleMessage message={message} id={id} key={id} />
+                        );
                     })
                 ) : (
                     <BlankChatArea />
@@ -377,21 +409,22 @@ const ChatArea = () => {
                         )}
                     </div>
                     <div className="flex absolute mb-28 ml-5 gap-10">
-                        {
-                            suggestionsToShow.map((suggestion: string, indx) => {
-                                return (
-                                    <div
-                                        key={indx}
-                                        className="cursor-pointer bg-blue-200 bg-opacity-1 hover:bg-gray-500 p-1 text-md rounded-md font-bold"
-                                        onClick={() => {
-                                            setNewMessage(newMessage + suggestion);
-                                        }}
-                                    >
-                                        {suggestion.trim().length > 0 ? suggestion : null}
-                                    </div>
-                                )
-                            })
-                        }
+                        {suggestionsToShow.map((suggestion: string, indx) => {
+                            return (
+                                <div
+                                    key={indx}
+                                    className="cursor-pointer bg-blue-200 bg-opacity-1 hover:bg-gray-500 p-1 text-md rounded-md font-bold"
+                                    onClick={() => {
+                                        setNewMessage(newMessage + suggestion);
+                                        inputRef?.current?.focus();
+                                    }}
+                                >
+                                    {suggestion.trim().length > 0
+                                        ? suggestion
+                                        : null}
+                                </div>
+                            );
+                        })}
                     </div>
                     <textarea
                         className="bg-slate-50  outline-none p-2 text-xl rounded flex-wrap w-full resize-none tracking-wider"
@@ -401,13 +434,24 @@ const ChatArea = () => {
                             setNewMessage(e.target.value);
                         }}
                         onKeyDown={handleSendMessage}
+                        ref={inputRef}
                         autoFocus
                     />
-                    <CiMicrophoneOn
-                        className={"cursor-pointer"}
-                        size={25}
-                        color="black"
-                    />
+                    {isRecording ? (
+                        <CiMicrophoneOff
+                            className="cursor-pointer"
+                            size={25}
+                            color="red"
+                            onClick={handleStopSpeech}
+                        />
+                    ) : (
+                        <CiMicrophoneOn
+                            className="cursor-pointer"
+                            size={25}
+                            color="black"
+                            onClick={startSpeechToText}
+                        />
+                    )}
                 </footer>
             )}
         </div>
