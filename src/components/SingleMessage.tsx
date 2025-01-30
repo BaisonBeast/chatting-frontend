@@ -122,11 +122,11 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
             key={id}
             onMouseEnter={() => setShowMenuIcon(true)}
             onMouseLeave={() => setShowMenuIcon(false)}
-            className={`relative  max-w-sm	m-3 p-3 rounded-br-2xl mr-6
+            className={`relative  max-w-sm	m-3 p-3 rounded-br-2xl mr-6 shadow-md
                         ${
                             message.senderEmail === user?.email
-                                ? "right"
-                                : "left"
+                                ? "right shadow-red-600"
+                                : "left shadow-green-600"
                         }
                         `}
         >

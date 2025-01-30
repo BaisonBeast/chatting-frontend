@@ -16,7 +16,7 @@ import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { HashLoader } from "react-spinners";
 
-const images = [1, 2, 3, 4];
+export const backgroundColors = ['#f8f9fa', '#f1f3f5', '#e9ecef', '#dee2e6'];
 const API_URL = import.meta.env.VITE_API_URL;
 
 const UpdateUser = () => {
@@ -148,16 +148,20 @@ const UpdateUser = () => {
                 </div>
                 <div className="flex flex-col gap-4">
                     <Label>Background</Label>
-                    <div className="h-20 w-20 flex gap-1">
-                        {images.map((image, indx) => {
+                    <div className="flex gap-1">
+                        {backgroundColors.map((image, indx) => {
                             return (
-                                <img
-                                    className={`${
+                                <div
+                                    style={{ 
+                                        backgroundColor: image,
+                                        boxShadow: `0 4px 8px 0 ${image}80, 0 6px 20px 0 ${image}80`
+                                    }} 
+                                    className={`h-24 w-20 rounded-md
+                                        ${
                                         selectedBackground === indx
                                             ? "border-4 border-green-950"
                                             : ""
-                                    }contain cursor-pointer p-1`}
-                                    src={`/${image}.png`}
+                                    } contain cursor-pointer p-1`}
                                     onClick={() => setSelectedBackground(indx)}
                                     key={indx}
                                 />

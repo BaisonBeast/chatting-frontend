@@ -67,12 +67,12 @@
 
 .left {
     align-self: flex-start;
-    background: #d1e7dd; 
+    background: #d1e7dd; /* Updated color */
 }
 
 .right {
     align-self: flex-end;
-    background: #f8d7da; 
+    background: #f8d7da; /* Updated color */
 }
 
 .footer {

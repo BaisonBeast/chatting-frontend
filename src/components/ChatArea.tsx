@@ -20,6 +20,7 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import SingleMessage from "./SingleMessage";
 import BlankChatArea from "./BlankChatArea";
 import useSpeechToText from "react-hook-speech-to-text";
+import { backgroundColors } from "./UpdateUser";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -350,16 +351,7 @@ const ChatArea = () => {
             </nav>
             <div
                 className="flex flex-col flex-grow overflow-y-auto"
-                style={
-                    user
-                        ? {
-                              backgroundImage: `url(${
-                                  user.background + 1
-                              }.png)`,
-                              filter: "grayscale(10%) contrast(80%)",
-                          }
-                        : undefined
-                }
+                style={{background: `${backgroundColors[user?.background as number]}`}}
                 ref={containerRef}
             >
                 {selectedChat !== -1 ? (
@@ -413,7 +405,7 @@ const ChatArea = () => {
                             return (
                                 <div
                                     key={indx}
-                                    className="cursor-pointer bg-blue-200 bg-opacity-1 hover:bg-gray-500 p-1 text-md rounded-md font-bold"
+                                    className="cursor-pointer bg-blue-200 bg-opacity-1 hover:bg-gray-500 p-1 px-2 shadow-sm shadow-teal-600 text-md rounded-md font-bold"
                                     onClick={() => {
                                         setNewMessage(newMessage + suggestion);
                                         inputRef?.current?.focus();
