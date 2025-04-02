@@ -1,6 +1,4 @@
 import "../css/Sidebar.css";
-import { BsThreeDotsVertical } from "react-icons/bs";
-import { MdOutlineMessage } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
 import {
     Popover,
@@ -17,11 +15,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { HashLoader } from "react-spinners";
-import UpdateUser from "./UpdateUser";
 import { PopoverClose } from "@radix-ui/react-popover";
 import InviteList from "./InviteList";
 import ChatList from "./ChatList";
 import GroupList from "./GroupList";
+import { LogOut, MoreVertical, Settings, UserPlus } from "lucide-react";
+import UpdateUser from "./UpdateUser";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,6 +32,7 @@ const Sidebar = () => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [inviteEmail, setInviteEmail] = useState("");
     const [loading, setLoading] = useState<boolean>(false);
+    const [updateProfileOpen, setUpdateProfileOpen] = useState(false);
 
     const { toast } = useToast();
 
@@ -114,73 +114,137 @@ const Sidebar = () => {
     return (
         <div className="w-1/4 h-screen flex flex-col">
             {/* Navbar */}
-            <nav className="flex w-full items-center justify-between border-b-2 p-3 h-15">
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Avatar className="cursor-pointer">
-                            <AvatarImage src={`${user?.profilePic}`} />
-                            <AvatarFallback>
-                                {getInitials(user?.username as string)}
-                            </AvatarFallback>
-                        </Avatar>
-                    </SheetTrigger>
-                    <UpdateUser />
-                </Sheet>
-                <div className="flex align-center">
-                    <Popover>
-                        <PopoverTrigger>
-                            <MdOutlineMessage
-                                size={25}
-                                className="mr-4 cursor-pointer"
-                            />
-                        </PopoverTrigger>
-                        <PopoverContent className="flex justify-center bg-white shadow-lg rounded-lg h-64 w-72">
-                            <div className="w-[90%] bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center gap-4">
-                                <h2 className="text-xl font-semibold text-gray-700">
-                                    🤝 Invite a Friend
-                                </h2>
-                                <Input
-                                    placeholder="Enter your friend's email"
-                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    value={inviteEmail}
-                                    onChange={(e) =>
-                                        setInviteEmail(e.target.value)
-                                    }
+            <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+                <div className="flex w-full items-center justify-between px-4 py-3 max-w-7xl mx-auto">
+                    {/* User Profile */}
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => setUpdateProfileOpen(true)}>
+                                <Avatar className="transition-all group-hover:scale-110">
+                                    <AvatarImage
+                                        src={user?.profilePic}
+                                        alt={user?.username}
+                                        className="object-cover"
+                                    />
+                                    <AvatarFallback className="bg-blue-500 text-white">
+                                        {getInitials(user?.username)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="hidden md:block">
+                                    <p className="text-sm font-semibold">
+                                        {user?.username}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {user?.email}
+                                    </p>
+                                </div>
+                            </div>
+                        </SheetTrigger>
+                        <UpdateUser
+                            updateProfileOpen={updateProfileOpen}
+                            setUpdateProfileOpen={setUpdateProfileOpen}
+                        />
+                    </Sheet>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-4">
+                        {/* Invite Friend Popover */}
+                        <Popover>
+                            <PopoverTrigger className="hover:bg-gray-100 p-2 rounded-full transition-colors group">
+                                <UserPlus
+                                    size={24}
+                                    className="text-gray-600 group-hover:text-blue-500 transition-colors"
                                 />
-                                <PopoverClose>
-                                    <Button
-                                        onClick={handleInvite}
-                                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-6 bg-white shadow-xl rounded-xl">
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-3">
+                                        <UserPlus
+                                            className="text-blue-500"
+                                            size={30}
+                                        />
+                                        <h2 className="text-xl font-bold text-gray-800">
+                                            Invite a Friend
+                                        </h2>
+                                    </div>
+                                    <Input
+                                        placeholder="Enter friend's email"
+                                        value={inviteEmail}
+                                        onChange={(e) =>
+                                            setInviteEmail(e.target.value)
+                                        }
+                                        className="w-full p-2 border-2 border-gray-200 rounded-md focus:border-blue-500 transition-colors"
+                                    />
+                                    <PopoverClose asChild>
+                                        <Button
+                                            onClick={handleInvite}
+                                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                                        >
+                                            {loading ? (
+                                                <HashLoader
+                                                    size={20}
+                                                    color="#ffffff"
+                                                />
+                                            ) : (
+                                                <>
+                                                    <UserPlus
+                                                        className="mr-2"
+                                                        size={20}
+                                                    />
+                                                    Send Invite
+                                                </>
+                                            )}
+                                        </Button>
+                                    </PopoverClose>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
+                        {/* More Options Popover */}
+                        <Popover>
+                            <PopoverTrigger className="hover:bg-gray-100 p-2 rounded-full transition-colors group">
+                                <MoreVertical
+                                    size={24}
+                                    className="text-gray-600 group-hover:text-blue-500 transition-colors"
+                                />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 bg-white shadow-xl rounded-xl">
+                                <div className="py-1">
+                                    <div
+                                        className="
+                    flex items-center px-4 py-2 
+                    hover:bg-gray-100 cursor-pointer 
+                    transition-colors group
+                  "
+                                        onClick={() => {
+                                            setUpdateProfileOpen(true);
+                                        }}
                                     >
-                                        {loading ? (
-                                            <HashLoader
-                                                size={20}
-                                                color="#ffffff"
-                                            />
-                                        ) : (
-                                            "Send Invite"
-                                        )}
-                                    </Button>
-                                </PopoverClose>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                    <Popover>
-                        <PopoverTrigger>
-                            <BsThreeDotsVertical
-                                size={25}
-                                className="cursor-pointer"
-                            />
-                        </PopoverTrigger>
-                        <PopoverContent className="w-56 flex flex-col items-start">
-                            <div
-                                className="cursor-pointer pl-2 w-full"
-                                onClick={handleLogout}
-                            >
-                                Logout
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                                        <Settings
+                                            size={20}
+                                            className="mr-3 text-gray-500 group-hover:text-blue-500"
+                                        />
+                                        Settings
+                                    </div>
+                                    <div
+                                        className="
+                    flex items-center px-4 py-2 
+                    hover:bg-gray-100 cursor-pointer 
+                    text-red-500
+                    transition-colors group
+                  "
+                                        onClick={handleLogout}
+                                    >
+                                        <LogOut
+                                            size={20}
+                                            className="mr-3 group-hover:text-red-600"
+                                        />
+                                        Logout
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                 </div>
             </nav>
 

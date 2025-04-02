@@ -21,6 +21,7 @@ import SingleMessage from "./SingleMessage";
 import BlankChatArea from "./BlankChatArea";
 import useSpeechToText from "react-hook-speech-to-text";
 import { backgroundColors } from "./UpdateUser";
+import { FileVideo, MoreVertical, Paperclip, Trash2 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -53,7 +54,7 @@ const ChatArea = () => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
-        handleFetchSuggestions();
+        handleFetchAutoComplete();
     }, [messages]);
 
     useEffect(() => {
@@ -95,12 +96,10 @@ const ChatArea = () => {
     }, [socket]);
 
     const handleFetchSuggestions = async () => {
-        if (messages.length === 0) return;
+        if (!newMessage.trim()) return;
         try {
             const resp = await axios.get(
-                `${API_URL}/api/chat/chatSuggestion?textContent=${
-                    messages[messages.length - 1].message
-                }`
+                `${API_URL}/api/chat/chatSuggestion?textContent=textContent=${newMessage}`
             );
             setSuggestionsToShow(resp.data.split(","));
         } catch (err: any) {
@@ -181,18 +180,20 @@ const ChatArea = () => {
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
             if (newMessage.trim()) {
-                handleFetchAutoComplete();
+                handleFetchSuggestions();
             }
-        }, 800);
+        }, 1500);
 
         return () => clearTimeout(debounceTimer);
     }, [newMessage]);
 
     const handleFetchAutoComplete = async () => {
-        if (!newMessage.trim()) return;
+        if (messages.length === 0) return;
         try {
             const resp = await axios.get(
-                `${API_URL}/api/chat/replySuggestion?textContent=${newMessage}`
+                `${API_URL}/api/chat/replySuggestion?textContent=${
+                    messages[messages.length - 1].message
+                }`
             );
             setSuggestionsToShow(resp.data.split(","));
         } catch (err: any) {
@@ -265,11 +266,7 @@ const ChatArea = () => {
 
     useEffect(() => {
         if (!isRecording && results.length > 0) {
-            const transcripts = results
-                .map((result) =>
-                    result
-                )
-                .join(" ");
+            const transcripts = results.map((result) => result).join(" ");
 
             setNewMessage((prev) => prev + " " + transcripts);
 
@@ -284,65 +281,102 @@ const ChatArea = () => {
 
     return (
         <div className="w-3/4 h-screen flex flex-col">
-            <nav className="flex h-19 items-center justify-between p-3 bg-slate-50">
-                <div className="flex items-center gap-5 pl-3">
-                    <Avatar>
-                        <AvatarImage
-                            src={
-                                selectedChat !== -1
-                                    ? chatList[selectedChat]?.participant
-                                          ?.profilePic
-                                    : "https://github.com/shadcn.png"
-                            }
-                        />
-                        <AvatarFallback>
-                            {selectedChat !== -1
-                                ? getInitials(
-                                      chatList[selectedChat]?.participant
-                                          ?.username as string
-                                  )
-                                : "CN"}
-                        </AvatarFallback>
-                    </Avatar>
-                    <h2 className="font-bold text-emerald-700">
-                        {selectedChat !== -1
-                            ? chatList[selectedChat].participant.username
-                            : "General"}
-                    </h2>
+            <nav className="flex items-center justify-between p-2 bg-white shadow-md border-b border-gray-100">
+                <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4">
+                        <Avatar className="w-12 h-12 border-2 border-emerald-100 shadow-sm">
+                            <AvatarImage
+                                src={
+                                    selectedChat !== -1
+                                        ? chatList[selectedChat]?.participant
+                                              ?.profilePic
+                                        : "https://github.com/shadcn.png"
+                                }
+                                alt="Chat participant avatar"
+                                className="object-cover"
+                            />
+                            <AvatarFallback className="bg-emerald-50 text-emerald-700 font-bold">
+                                {selectedChat !== -1
+                                    ? getInitials(
+                                          chatList[selectedChat]?.participant
+                                              ?.username
+                                      )
+                                    : "CN"}
+                            </AvatarFallback>
+                        </Avatar>
+
+                        <div>
+                            <h2 className="text-xl font-bold text-emerald-800 tracking-tight">
+                                {selectedChat !== -1
+                                    ? chatList[selectedChat].participant
+                                          .username
+                                    : "General Chat"}
+                            </h2>
+                            <p className="text-xs text-gray-500">
+                                {selectedChat !== -1
+                                    ? "Active now"
+                                    : "Default channel"}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex gap-5">
+
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-4">
+                    {/* Attachment Popover */}
                     <Popover>
-                        <PopoverTrigger>
-                            <IoIosAttach size={25} className="cursor-pointer" />
+                        <PopoverTrigger className="rounded-full p-2 hover:bg-gray-100 transition-colors group">
+                            <Paperclip
+                                size={22}
+                                className="text-gray-600 group-hover:text-emerald-600 transition-colors"
+                            />
                         </PopoverTrigger>
-                        <PopoverContent className="w-56 flex flex-col  ">
+                        <PopoverContent
+                            align="end"
+                            className="w-64 bg-white shadow-xl rounded-xl border-none p-2"
+                        >
                             <PopoverClose className="w-full">
-                                <div className="cursor-pointer w-full p-2 hover:bg-gray-200 text-start">
-                                    Attach photo
-                                </div>
-                                <div className="cursor-pointer w-full p-2 hover:bg-gray-200  text-start">
-                                    Attach Video
-                                </div>
-                                <div className="cursor-pointer w-full p-2 hover:bg-gray-200  text-start">
-                                    Attach file
-                                </div>
+                                {[
+                                    { icon: Image, label: "Attach Photo" },
+                                    { icon: FileVideo, label: "Attach Video" },
+                                    { icon: File, label: "Attach File" },
+                                ].map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"
+                                    >
+                                        <span className="text-sm text-gray-700">
+                                            {item.label}
+                                        </span>
+                                    </div>
+                                ))}
                             </PopoverClose>
                         </PopoverContent>
                     </Popover>
+
                     <Popover>
-                        <PopoverTrigger>
-                            <BsThreeDotsVertical
-                                size={25}
-                                className="cursor-pointer"
+                        <PopoverTrigger className="rounded-full p-2 hover:bg-gray-100 transition-colors group">
+                            <MoreVertical
+                                size={22}
+                                className="text-gray-600 group-hover:text-emerald-600 transition-colors"
                             />
                         </PopoverTrigger>
-                        <PopoverContent className="w-56 flex flex-col items-start">
-                            <PopoverClose>
+                        <PopoverContent
+                            align="end"
+                            className="w-64 bg-white shadow-xl rounded-xl border-none p-2"
+                        >
+                            <PopoverClose className="w-full">
                                 <div
-                                    className="cursor-pointer w-full pl-2"
                                     onClick={handleDeleteChat}
+                                    className="flex items-center space-x-3 p-2 rounded-md hover:bg-red-50 cursor-pointer transition-colors group"
                                 >
-                                    Delete chat
+                                    <Trash2
+                                        size={20}
+                                        className="text-red-500 group-hover:text-red-600"
+                                    />
+                                    <span className="text-sm text-red-600 group-hover:text-red-700">
+                                        Delete Chat
+                                    </span>
                                 </div>
                             </PopoverClose>
                         </PopoverContent>
@@ -351,7 +385,11 @@ const ChatArea = () => {
             </nav>
             <div
                 className="flex flex-col flex-grow overflow-y-auto"
-                style={{background: `${backgroundColors[user?.background as number]}`}}
+                style={{
+                    background: `${
+                        backgroundColors[user?.background as number]
+                    }`,
+                }}
                 ref={containerRef}
             >
                 {selectedChat !== -1 ? (
@@ -400,23 +438,58 @@ const ChatArea = () => {
                             />
                         )}
                     </div>
-                    <div className="flex absolute mb-28 ml-5 gap-10">
-                        {suggestionsToShow.map((suggestion: string, indx) => {
-                            return (
-                                <div
-                                    key={indx}
-                                    className="cursor-pointer bg-blue-200 bg-opacity-1 hover:bg-gray-500 p-1 px-2 shadow-sm shadow-teal-600 text-md rounded-md font-bold"
-                                    onClick={() => {
-                                        setNewMessage(newMessage + suggestion);
-                                        inputRef?.current?.focus();
-                                    }}
-                                >
-                                    {suggestion.trim().length > 0
-                                        ? suggestion
-                                        : null}
-                                </div>
-                            );
-                        })}
+                    <div
+                        className="
+                            left-0 
+                            right-0 
+                            overflow-x-auto 
+                            whitespace-nowrap 
+                            py-2 
+                            px-4 
+                            shadow-sm 
+                            z-10
+                            absolute
+                            bottom-20
+                        "
+                        style={{
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                        }}
+                    >
+                        <div className="flex items-center space-x-2 overflow-x-auto">
+                            {suggestionsToShow.map(
+                                (suggestion: string, index) =>
+                                    suggestion?.length > 0 && (
+                                        <div
+                                            key={index}
+                                            onClick={() => {
+                                                setNewMessage(
+                                                    newMessage + suggestion
+                                                );
+                                                inputRef?.current?.focus();
+                                            }}
+                                            className="
+                px-3 
+                py-1 
+                text-sm 
+                bg-blue-100 
+                text-blue-800 
+                rounded-full 
+                cursor-pointer 
+                hover:bg-blue-200 
+                transition-colors 
+                duration-200 
+                flex-shrink-0
+                shadow-sm
+                hover:shadow-md
+                active:scale-95
+              "
+                                        >
+                                            {suggestion}
+                                        </div>
+                                    )
+                            )}
+                        </div>
                     </div>
                     <textarea
                         className="bg-slate-50  outline-none p-2 text-xl rounded flex-wrap w-full resize-none tracking-wider"

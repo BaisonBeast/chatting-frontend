@@ -1,97 +1,100 @@
 import React, { useEffect, useState } from "react";
-import { PopoverClose } from "@radix-ui/react-popover";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import useChatStore from "@/store/useStore";
-import { Message } from "@/interfaces/message.interface";
+import {
+    MoreVertical,
+    Edit2,
+    Trash2,
+    ThumbsUp,
+    AlertTriangle,
+} from "lucide-react";
 import moment from "moment";
-import { BsThreeDotsVertical } from "react-icons/bs";
-import { BiSolidErrorAlt } from "react-icons/bi";
 import axios from "axios";
 import { useSocket } from "@/context/SocketContext";
 import { useToast } from "@/hooks/use-toast";
+import useChatStore from "@/store/useStore";
+import { Message } from "@/interfaces/message.interface";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface SingleMessageProps {
     message: Message;
     id: number;
 }
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
+    const { toast } = useToast();
+    const { socket } = useSocket();
+    const { user, chatList, selectedChat, addLike, deleteMessage } =
+        useChatStore();
+    const [isHovered, setIsHovered] = useState(false);
+
+    // Calculate days ago
     const calculateDaysAgo = (isoDate: string) => {
         const pastDate = new Date(isoDate);
         const currentDate = new Date();
         const differenceInMs = currentDate.getTime() - pastDate.getTime();
-        const differenceInDays = Math.floor(
-            differenceInMs / (24 * 60 * 60 * 1000)
-        );
-        return differenceInDays;
+        return Math.floor(differenceInMs / (24 * 60 * 60 * 1000));
     };
 
-    const { toast } = useToast();
-    const { socket } = useSocket();
     const day = calculateDaysAgo(message.updatedAt);
-    const { user, chatList, selectedChat, addLike, deleteMessage } =
-        useChatStore();
-    const [showMenuIcon, setShowMenuIcon] = useState<boolean>(false);
 
+    // Determine message styling based on sender
+    const isOwnMessage = message.senderEmail === user?.email;
+    const messageStyles = isOwnMessage
+        ? "bg-blue-50 border-blue-200 text-blue-900 self-end rounded-bl-2xl"
+        : "bg-green-50 border-green-200 text-green-900 self-start rounded-br-2xl";
+
+    // Handle message delete
     const handleDeleteMessage = async (id: string) => {
         try {
-            const resp = await axios.delete(
-                `${API_URL}/api/messages/delete/${id}`,
-                {
-                    data: {
-                        loggedUserEmail: user?.email,
-                        otherSideUserEmail:
-                            chatList[selectedChat].participant.email,
-                    },
-                }
-            );
-            console.log(resp);
-        } catch (error) {
-            console.error(error);
+            await axios.delete(`${API_URL}/api/messages/delete/${id}`, {
+                data: {
+                    loggedUserEmail: user?.email,
+                    otherSideUserEmail:
+                        chatList[selectedChat].participant.email,
+                },
+            });
             toast({
-                title: "Error deleting message",
+                title: "Message Deleted",
+                description: "Your message has been successfully deleted.",
+                variant: "default",
+            });
+        } catch (error) {
+            toast({
+                title: "Error Deleting Message",
                 description:
                     "Failed to delete message. Please try again later.",
+                variant: "destructive",
             });
         }
     };
 
+    // Handle like message
     const handleLike = async () => {
         try {
-            const resp = await axios.post(
-                `${API_URL}/api/messages/likeMessage`,
-                {
-                    messageId: message._id,
-                    likeGivenUserEmail: user?.email,
-                    otherSideUserEmail:
-                        chatList[selectedChat].participant.email,
-                }
-            );
-            console.log(resp.data);
+            await axios.post(`${API_URL}/api/messages/likeMessage`, {
+                messageId: message._id,
+                likeGivenUserEmail: user?.email,
+                otherSideUserEmail: chatList[selectedChat].participant.email,
+            });
+            toast({
+                title: "Message Liked",
+                description: "You've liked this message.",
+            });
         } catch (err: any) {
-            if (err.response && err.response.data) {
-                const { message } = err.response.data;
-
-                toast({
-                    title: "Please try again",
-                    description: `${message}`,
-                });
-            } else {
-                toast({
-                    title: "Something went wrong",
-                    description: "Please try again after some time...",
-                });
-            }
-            console.error(err);
+            toast({
+                title: "Like Failed",
+                description: err.response?.data?.message || "Please try again.",
+                variant: "destructive",
+            });
         }
     };
 
+    // Socket event listeners
     useEffect(() => {
         if (!socket) return;
 
@@ -117,94 +120,115 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
         };
     }, [socket]);
 
+    // Render timestamp
+    const renderTimestamp = () => {
+        const timeFormat = `${
+            day === 0
+                ? "Today at"
+                : day === 1
+                ? "Yesterday at"
+                : `${day} days ago at`
+        } ${moment(message.updatedAt).format("LT")}`;
+
+        return (
+            <span className="text-xs text-gray-500 mt-1 block text-right">
+                {timeFormat}
+            </span>
+        );
+    };
+
     return (
         <div
             key={id}
-            onMouseEnter={() => setShowMenuIcon(true)}
-            onMouseLeave={() => setShowMenuIcon(false)}
-            className={`relative  max-w-sm	m-3 p-3 rounded-br-2xl mr-6 shadow-md
-                        ${
-                            message.senderEmail === user?.email
-                                ? "right shadow-red-600"
-                                : "left shadow-green-600"
-                        }
-                        `}
+            className={`
+        relative max-w-md w-full mx-4 my-3 p-4 
+        border-2 ${messageStyles}
+        transition-all duration-300 ease-in-out
+        shadow-md hover:shadow-lg 
+        group
+      `}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="flex flex-col relative">
-                <p className="text-lg font-medium">
-                    {message.isDeleted ? (
-                        <BiSolidErrorAlt color="red" />
-                    ) : (
-                        message.message
-                    )}
-                </p>
-                <h6 className="text-[10px] text-end">{`${
-                    day === 0
-                        ? "Today at"
-                        : day === 1
-                        ? "Yesterday at"
-                        : `${day} days ago at`
-                } ${moment(message.updatedAt).format("LT")}`}</h6>
-                {message.like.length > 0 && (
-                    <p className={`absolute right-[-35px] bottom-[-15px] `}>
-                        👍{message.like.length}
-                    </p>
-                )}
+            {/* Message Content */}
+            <div className="relative">
                 {message.isDeleted ? (
-                    <p className="text-[8px] text-end">Deleted</p>
-                ) : null}
+                    <div className="flex items-center text-red-500">
+                        <AlertTriangle className="mr-2" size={20} />
+                        <span className="italic">Message Deleted</span>
+                    </div>
+                ) : (
+                    <p className="text-base font-medium">{message.message}</p>
+                )}
+
+                {/* Timestamp */}
+                {renderTimestamp()}
+
+                {/* Like Counter */}
+                {message.like.length > 0 && (
+                    <div className="absolute bottom-[-15px] right-[-10px] flex items-center text-blue-600">
+                        <ThumbsUp size={16} className="mr-1" />
+                        <span className="text-xs">{message.like.length}</span>
+                    </div>
+                )}
             </div>
-            <Popover>
-                <PopoverTrigger
-                    className={`absolute top-0 ${
-                        message.senderEmail === user?.email
-                            ? "left-[-20px]"
-                            : "right-[5px]"
-                    }`}
-                >
-                    {
-                    message.isDeleted === false && 
-                    <BsThreeDotsVertical
-                        size={25}
-                        className={`absolute top-5 cursor-pointer 
-                            ${showMenuIcon ? "" : "hidden"}
-                            `}
-                    /> 
-                    }
-                </PopoverTrigger>
-                {
-                    message.isDeleted === false && 
+
+            {/* Action Menu */}
+            {!message.isDeleted && (
+                <Popover>
+                    <PopoverTrigger
+                        className={`
+              absolute top-2 transition-opacity duration-300
+              ${isHovered ? "opacity-100" : "opacity-0"}
+              ${isOwnMessage ? "left-[-40px]" : "right-[-40px]"}
+            `}
+                    >
+                        <button className="hover:bg-gray-100 p-2 rounded-full">
+                            <MoreVertical size={20} className="text-gray-600" />
+                        </button>
+                    </PopoverTrigger>
+
                     <PopoverContent
-                    className={`w-56 flex flex-col absolute top-[-10px] ${
-                        message.senderEmail === user?.email
-                            ? "right-[-17px]"
-                            : "left-0"
-                    }`}
-                >
-                    <PopoverClose className="text-start ">
-                        {message.senderEmail === user?.email && (
-                            <div className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1 ">
-                                Edit Chat
-                            </div>
-                        )}
-                        {message.senderEmail === user?.email &&(
-                            <div
-                                className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1"
-                                onClick={() => handleDeleteMessage(message._id)}
+                        className={`
+              w-56 bg-white border shadow-lg rounded-lg
+              ${isOwnMessage ? "left-[-60px]" : "right-[-60px]"}
+            `}
+                    >
+                        <div className="py-1">
+                            {isOwnMessage && (
+                                <>
+                                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                                        <Edit2
+                                            size={16}
+                                            className="mr-2 text-blue-500"
+                                        />
+                                        Edit Message
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleDeleteMessage(message._id)
+                                        }
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-500"
+                                    >
+                                        <Trash2 size={16} className="mr-2" />
+                                        Delete Message
+                                    </button>
+                                </>
+                            )}
+                            <button
+                                onClick={handleLike}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
                             >
-                                Delete Chat
-                            </div>
-                        )}
-                        <div
-                            className="cursor-pointer w-full p-2  hover:bg-gray-200 mt-1"
-                            onClick={handleLike}
-                        >
-                            Like Chat
+                                <ThumbsUp
+                                    size={16}
+                                    className="mr-2 text-blue-500"
+                                />
+                                Like Message
+                            </button>
                         </div>
-                    </PopoverClose>
-                </PopoverContent>
-                }    
-            </Popover>
+                    </PopoverContent>
+                </Popover>
+            )}
         </div>
     );
 };

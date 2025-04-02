@@ -11,8 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import Logo from "../assets/chatting.jpg";
 import { CiLogin } from "react-icons/ci";
-import { FaEyeSlash } from "react-icons/fa";
-import { FaEye } from "react-icons/fa";
+import { FaEyeSlash, FaEye, FaComments, FaUser, FaEnvelope } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
@@ -29,6 +28,7 @@ export function Register() {
     const [profilePic, setProfilePic] = useState<File | null>(null);
     const [passwordType, setPasswordType] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const { toast } = useToast();
     const { setUser } = useChatStore();
@@ -36,7 +36,14 @@ export function Register() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
-        if (selectedFile) setProfilePic(selectedFile);
+        if (selectedFile) {
+            setProfilePic(selectedFile);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setPreviewImage(e.target?.result as string);
+            };
+            reader.readAsDataURL(selectedFile);
+        }
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -50,6 +57,23 @@ export function Register() {
             });
             return;
         }
+        
+        if (!username.trim()) {
+            toast({
+                title: "Username Required",
+                description: "Please enter a username.",
+            });
+            return;
+        }
+        
+        if (!password.trim() || password.length < 6) {
+            toast({
+                title: "Invalid Password",
+                description: "Password must be at least 6 characters long.",
+            });
+            return;
+        }
+
         const formData = new FormData();
         formData.append("email", email);
         formData.append("password", password);
@@ -68,6 +92,7 @@ export function Register() {
                     title: `${res.data.message}`,
                     description: `Welcome ${res.data.data.username}`,
                 });
+                navigate("/");
             } else {
                 toast({
                     title: "Please try again..",
@@ -79,7 +104,7 @@ export function Register() {
                 const { message } = err.response.data;
 
                 toast({
-                    title: "Invalid credentials",
+                    title: "Registration failed",
                     description: `${message}`,
                 });
             } else {
@@ -95,96 +120,157 @@ export function Register() {
     };
 
     return (
-        <div className="w-screen h-screen flex justify-center items-center p-4">
-            <Card className="flex  w-full max-w-xs md:max-w-4xl items-center justify-center shadow-lg">
-                <div className="hidden md:flex md:w-1/2 md:h-full md:items-center md:justify-center p-4">
+        <div className="w-screen h-screen flex justify-center items-center p-4 bg-gradient-to-br from-blue-50 to-purple-50">
+            <Card className="flex flex-col w-full max-w-xs md:max-w-4xl md:flex-row md:h-5/6 items-center justify-center shadow-lg border-0 overflow-hidden">
+                <div className="hidden md:flex md:w-1/2 md:h-full md:items-center md:justify-center p-0 bg-gradient-to-br from-blue-400 to-purple-500 relative">
+                    <div className="absolute inset-0 bg-black bg-opacity-20"></div>
                     <img
-                        className="rounded-lg shadow-lg object-cover w-full h-full max-h-72 md:max-h-full shadow-slate-400"
+                        className="object-cover w-full h-full"
                         src={Logo}
-                        alt="Main Logo"
+                        alt="Chizzel Logo"
                     />
                 </div>
 
-                <Card className="flex flex-col w-full max-w-xs md:w-2/5 sm:p-8 items-center justify-center md:mt-2 md:mb-2">
-                    <CardHeader className="flex flex-col w-full items-center">
-                        <CardTitle className="text-xl sm:text-2xl md:text-3xl">
-                            Register
+                <Card className="flex flex-col w-full p-6 sm:p-8 items-center justify-center md:w-1/2 lg:w-3/5 border-0 bg-white">
+                    <CardHeader className="flex flex-col items-center text-center mb-2 w-full">
+                        <div className="md:hidden flex items-center justify-center mb-4">
+                            <FaComments className="text-3xl mr-2 text-blue-500" />
+                            <h1 className="text-3xl font-bold text-blue-500">Chizzel</h1>
+                        </div>
+                        <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800">
+                            Create Account
                         </CardTitle>
-                        <CardDescription className="text-sm md:text-base">
-                            This is the Registration page...
+                        <CardDescription className="text-gray-500 mt-2">
+                            Join Chizzel and start connecting
                         </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="flex flex-col gap-3 w-full">
-                        <Input
-                            type="email"
-                            placeholder="Email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-
-                        <div className="relative w-full">
-                            {passwordType ? (
-                                <FaEye
-                                    className="absolute right-3 top-3 text-gray-500 cursor-pointer"
-                                    onClick={() =>
-                                        setPasswordType((prev) => !prev)
-                                    }
+                    <CardContent className="flex flex-col gap-4 w-full">
+                        <div>
+                            <label htmlFor="email" className="text-sm font-medium text-gray-700 block mb-1">
+                                Email
+                            </label>
+                            <div className="relative">
+                                <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    required
+                                    className="w-full pl-10"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                 />
-                            ) : (
-                                <FaEyeSlash
-                                    className="absolute right-3 top-3 text-gray-500 cursor-pointer"
-                                    onClick={() =>
-                                        setPasswordType((prev) => !prev)
-                                    }
-                                />
-                            )}
-                            <Input
-                                type={passwordType ? "password" : "text"}
-                                placeholder="Password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
+                            </div>
                         </div>
 
-                        <Input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
+                        <div>
+                            <label htmlFor="username" className="text-sm font-medium text-gray-700 block mb-1">
+                                Username
+                            </label>
+                            <div className="relative">
+                                <FaUser className="absolute left-3 top-3 text-gray-400" />
+                                <Input
+                                    id="username"
+                                    type="text"
+                                    placeholder="Choose a username"
+                                    required
+                                    className="w-full pl-10"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                />
+                            </div>
+                        </div>
 
-                        <Label htmlFor="picture">Picture</Label>
-                        <Input
-                            id="picture"
-                            type="file"
-                            required
-                            accept="image/*"
-                            onChange={(e) => handleFileChange(e)}
-                        />
+                        <div>
+                            <label htmlFor="password" className="text-sm font-medium text-gray-700 block mb-1">
+                                Password
+                            </label>
+                            <div className="relative w-full">
+                                {passwordType ? (
+                                    <FaEye
+                                        className="absolute right-3 top-3 text-gray-500 cursor-pointer"
+                                        onClick={() => setPasswordType((prev) => !prev)}
+                                    />
+                                ) : (
+                                    <FaEyeSlash
+                                        className="absolute right-3 top-3 text-gray-500 cursor-pointer"
+                                        onClick={() => setPasswordType((prev) => !prev)}
+                                    />
+                                )}
+                                <Input
+                                    id="password"
+                                    type={passwordType ? "password" : "text"}
+                                    placeholder="••••••••"
+                                    required
+                                    className="w-full"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Must be at least 6 characters
+                            </p>
+                        </div>
+
+                        <div>
+                            <label htmlFor="picture" className="text-sm font-medium text-gray-700 block mb-1">
+                                Profile Picture
+                            </label>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex-shrink-0">
+                                    {previewImage ? (
+                                        <div className="w-16 h-16 rounded-full overflow-hidden">
+                                            <img 
+                                                src={previewImage} 
+                                                alt="Profile Preview"
+                                                className="w-full h-full object-cover" 
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <FaUser className="text-gray-400 text-2xl" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-grow">
+                                    <Input
+                                        id="picture"
+                                        type="file"
+                                        required
+                                        accept="image/*"
+                                        onChange={(e) => handleFileChange(e)}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </CardContent>
 
-                    <CardFooter className="flex flex-col gap-3 items-center mt-6 w-full">
+                    <CardFooter className="flex flex-col gap-4 items-center mt-4 w-full">
                         {loading ? (
-                            <HashLoader />
+                            <div className="flex justify-center w-full py-2">
+                                <HashLoader color="#3b82f6" size={36} />
+                            </div>
                         ) : (
                             <Button
                                 type="submit"
-                                className="w-full"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2"
                                 onClick={(e) => handleSubmit(e)}
                             >
-                                Submit
+                                Create Account
                             </Button>
                         )}
-                        <Button
-                            variant="ghost"
-                            className="w-full flex items-center justify-center"
-                            onClick={() => navigate("/login")}
-                        >
-                            <CiLogin className="mr-1" /> Login
-                        </Button>
+                        <div className="flex items-center justify-center w-full mt-2">
+                            <span className="text-gray-500 text-sm">Already have an account?</span>
+                            <Button
+                                variant="ghost"
+                                className="text-blue-600 hover:text-blue-800 font-medium text-sm ml-1 p-0"
+                                onClick={() => navigate("/login")}
+                            >
+                                <CiLogin className="mr-1" /> Sign In
+                            </Button>
+                        </div>
                     </CardFooter>
                 </Card>
             </Card>

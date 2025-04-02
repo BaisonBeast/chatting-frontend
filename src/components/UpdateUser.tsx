@@ -4,6 +4,7 @@ import {
     SheetHeader,
     SheetTitle,
     SheetFooter,
+    Sheet
 } from "@/components/ui/sheet";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "./ui/input";
@@ -11,15 +12,22 @@ import { Button } from "./ui/button";
 import useChatStore from "@/store/useStore";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RxCross2 } from "react-icons/rx";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
-import { HashLoader } from "react-spinners";
+import { Camera } from "lucide-react";
 
-export const backgroundColors = ['#f8f9fa', '#f1f3f5', '#e9ecef', '#dee2e6'];
+export const backgroundColors = ["#f8f9fa", "#f1f3f5", "#e9ecef", "#dee2e6"];
 const API_URL = import.meta.env.VITE_API_URL;
 
-const UpdateUser = () => {
+interface UpdateUserProps {
+    updateProfileOpen: boolean;
+    setUpdateProfileOpen: (open: boolean) => void;
+}
+
+const UpdateUser = ({
+    updateProfileOpen,
+    setUpdateProfileOpen,
+}: UpdateUserProps) => {
     const { setUser, user } = useChatStore();
     const [username, setUsername] = useState<string>("");
     const [selectedBackground, setSelectedBackground] = useState<number>(
@@ -111,96 +119,128 @@ const UpdateUser = () => {
     }
 
     return (
-        <SheetContent className="w-[400px] sm:w-[540px] bg-gray-100 text-gray-800 p-6" side={"left"}>
-            <SheetHeader>
-                <SheetTitle className="text-2xl font-semibold">Edit profile</SheetTitle>
-                <SheetDescription className="text-gray-600">
-                    Make changes to your profile here. Click save when you're
-                    done.
-                </SheetDescription>
-            </SheetHeader>
-            <p className="text-gray-600">Email: <span className="font-bold">{user?.email}</span></p>
-            <div className="flex mt-10 mb-10 gap-10 items-center justify-center">
-                <Avatar className="w-28 h-28">
-                    <AvatarImage
-                        src={`${imageUrl === "" ? user?.profilePic : imageUrl}`}
+        <Sheet open={updateProfileOpen} onOpenChange={(open) => setUpdateProfileOpen(open)}>
+            <SheetContent
+                className="w-[400px] sm:w-[540px] bg-white shadow-2xl rounded-l-2xl overflow-hidden"
+                side="right"
+            >
+                <div className="relative h-full">
+                    <div
+                        className={`absolute top-0 left-0 w-full h-32 ${backgroundColors[selectedBackground]} opacity-20`}
                     />
-                    <AvatarFallback>
-                        {getInitials(user?.username as string)}
-                    </AvatarFallback>
-                </Avatar>
-                <div className="text-lg truncate w-32">
-                    {username === "" ? user?.username : username}
-                </div>
-            </div>
-            <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="username" className="text-right text-gray-600">
-                        Username
-                    </Label>
-                    <Input
-                        id="username"
-                        value={username}
-                        className="col-span-3"
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter new username"
-                    />
-                </div>
-                <div className="flex flex-col gap-4">
-                    <Label>Background</Label>
-                    <div className="flex gap-1">
-                        {backgroundColors.map((image, indx) => {
-                            return (
-                                <div
-                                    style={{ 
-                                        backgroundColor: image,
-                                        boxShadow: `0 4px 8px 0 ${image}80, 0 6px 20px 0 ${image}80`
-                                    }} 
-                                    className={`h-24 w-20 rounded-md
-                                        ${
-                                        selectedBackground === indx
-                                            ? "border-4 border-green-950"
-                                            : ""
-                                    } contain cursor-pointer p-1`}
-                                    onClick={() => setSelectedBackground(indx)}
-                                    key={indx}
+
+                    <div className="relative z-10 p-6">
+                        <SheetHeader className="mb-6">
+                            <SheetTitle className="text-3xl font-bold text-gray-800">
+                                Edit Profile
+                            </SheetTitle>
+                            <SheetDescription className="text-gray-600">
+                                Personalize your profile with a few simple
+                                changes
+                            </SheetDescription>
+                        </SheetHeader>
+
+                        {/* User Email Display */}
+                        <div className="bg-gray-50 p-3 rounded-lg mb-6 shadow-sm">
+                            <p className="text-sm text-gray-600">
+                                Email:{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {user?.email}
+                                </span>
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col items-center mb-8 space-y-4">
+                            <div className="relative">
+                                <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
+                                    <AvatarImage
+                                        src={imageUrl || user?.profilePic}
+                                        className="object-cover"
+                                    />
+                                    <AvatarFallback className="bg-gray-200 text-gray-700 font-bold">
+                                        {getInitials(user?.username)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <label
+                                    htmlFor="profilePic"
+                                    className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer hover:bg-blue-600 transition-colors"
+                                >
+                                    <Camera size={18} />
+                                    <input
+                                        type="file"
+                                        id="profilePic"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                    />
+                                </label>
+                            </div>
+
+                            <div className="text-center">
+                                <h2 className="text-xl font-semibold text-gray-800">
+                                    {username || user?.username}
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div>
+                                <Label
+                                    htmlFor="username"
+                                    className="block mb-2 text-sm font-medium text-gray-700"
+                                >
+                                    Username
+                                </Label>
+                                <Input
+                                    id="username"
+                                    value={username}
+                                    onChange={(e) =>
+                                        setUsername(e.target.value)
+                                    }
+                                    placeholder="Choose a new username"
+                                    className="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 />
-                            );
-                        })}
+                            </div>
+
+                            <div>
+                                <Label className="block mb-2 text-sm font-medium text-gray-700">
+                                    Profile Background
+                                </Label>
+                                <div className="flex space-x-3">
+                                    {backgroundColors.map(
+                                        (colorClass, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() =>
+                                                    setSelectedBackground(index)
+                                                }
+                                                className={`w-12 h-12 rounded-full ${colorClass} 
+                        transform transition-all duration-300  border-2
+                        ${
+                            selectedBackground === index
+                                ? "scale-110 border-4 border-white shadow-lg"
+                                : "hover:scale-105 opacity-70 hover:opacity-100"
+                        }`}
+                                            />
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <SheetFooter className="mt-8">
+                            <Button
+                                onClick={handleUpdate}
+                                disabled={loading}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                            >
+                                {loading ? "Saving..." : "Save Changes"}
+                            </Button>
+                        </SheetFooter>
                     </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4 relative">
-                    <Label htmlFor="profilePic" className="text-right">
-                        Profile picture
-                    </Label>
-                    <Input
-                        id="profilePic"
-                        type="file"
-                        accept="image/*"
-                        className="col-span-3"
-                        onChange={(e) => handleFileChange(e)}
-                    />
-                    {imageUrl != "" ? (
-                        <RxCross2
-                            className="absolute right-0 top-2 cursor-pointer"
-                            onClick={() => {
-                                setImageUrl("");
-                                setProfilePic(null);
-                            }}
-                        />
-                    ) : null}
-                </div>
-            </div>
-            <SheetFooter className="flex justify-center items-center">
-                {loading ? (
-                    <HashLoader />
-                ) : (
-                    <Button type="submit" onClick={handleUpdate}>
-                        Save changes
-                    </Button>
-                )}
-            </SheetFooter>
-        </SheetContent>
+            </SheetContent>
+        </Sheet>
     );
 };
 
