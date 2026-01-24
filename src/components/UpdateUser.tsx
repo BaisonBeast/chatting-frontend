@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import axios from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Camera } from "lucide-react";
+import { API_ROUTES } from "@/utils/ApiRoutes";
+import { compressImage } from "@/utils/imageCompression";
 
 export const backgroundColors = ["bg-blue-100", "bg-green-100", "bg-purple-100", "bg-orange-100"];
 
@@ -67,11 +69,19 @@ const UpdateUser = ({
         formData.append("email", user.email);
         formData.append("background", selectedBackground.toString());
         formData.append("username", username);
-        if (profilePic !== null) formData.append("profilePic", profilePic);
+        if (profilePic !== null) {
+            try {
+                const compressedFile = await compressImage(profilePic);
+                formData.append("profilePic", compressedFile);
+            } catch (error) {
+                console.error("Image compression failed:", error);
+                formData.append("profilePic", profilePic);
+            }
+        }
         try {
             setLoading(true);
             const resp = await axios.post(
-                `/api/chatUser/update`,
+                API_ROUTES.AUTH.UPDATE,
                 formData
             );
             setUser(resp.data.data);

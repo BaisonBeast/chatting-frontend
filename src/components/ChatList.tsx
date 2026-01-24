@@ -13,6 +13,7 @@ import { IoIosArrowUp } from "react-icons/io";
 import moment from "moment";
 import { SingleChat } from "@/interfaces/chat.interface";
 import { useSocket } from "@/context/SocketContext";
+import { API_ROUTES } from "@/utils/ApiRoutes";
 
 
 
@@ -119,7 +120,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
 
     const fetchAllChatList = async () => {
         try {
-            const resp = await axios.get(`/api/chat/getAllChats`, {
+            const resp = await axios.get(API_ROUTES.CHAT.GET_ALL_CHATS, {
                 params: {
                     email: user?.email,
                 },

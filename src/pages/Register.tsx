@@ -19,7 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import useChatStore from "@/store/useStore";
 import { HashLoader } from "react-spinners";
 
-
+import { API_ROUTES } from "@/utils/ApiRoutes";
+import { compressImage } from "@/utils/imageCompression";
 
 export function Register() {
     const [email, setEmail] = useState<string>("");
@@ -78,12 +79,20 @@ export function Register() {
         formData.append("email", email);
         formData.append("password", password);
         formData.append("username", username);
-        if (profilePic !== null) formData.append("profilePic", profilePic);
+        if (profilePic !== null) {
+            try {
+                const compressedFile = await compressImage(profilePic);
+                formData.append("profilePic", compressedFile);
+            } catch (error) {
+                console.error("Image compression failed:", error);
+                formData.append("profilePic", profilePic);
+            }
+        }
 
         try {
             setLoading(true);
             const res = await axios.post(
-                `/api/chatUser/register`,
+                API_ROUTES.AUTH.REGISTER,
                 formData
             );
             if (res.data.status === "SUCCESS") {

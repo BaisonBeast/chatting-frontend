@@ -21,6 +21,7 @@ import ChatList from "./ChatList";
 import GroupList from "./GroupList";
 import { LogOut, MoreVertical, Settings, UserPlus } from "lucide-react";
 import UpdateUser from "./UpdateUser";
+import { API_ROUTES } from "@/utils/ApiRoutes";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -57,7 +58,7 @@ const Sidebar = () => {
         }
         try {
             setLoading(true);
-            const resp = await axios.post(`/api/chat/inviteUser`, {
+            const resp = await axios.post(API_ROUTES.CHAT.INVITE_USER, {
                 invitedEmail: inviteEmail,
                 inviteeEmail: user?.email,
                 inviteeUsername: user?.username,

@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import useChatStore from "@/store/useStore";
 import { HashLoader } from "react-spinners";
 
-
+import { API_ROUTES } from "@/utils/ApiRoutes";
 
 export default function Login() {
     const [email, setEmail] = useState<string>("");
@@ -37,7 +37,8 @@ export default function Login() {
         }
         try {
             setLoading(true);
-            const res = await axios.post(`/api/chatUser/login`, {
+            setLoading(true);
+            const res = await axios.post(API_ROUTES.AUTH.LOGIN, {
                 email,
                 password,
             });

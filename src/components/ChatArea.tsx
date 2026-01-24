@@ -22,6 +22,7 @@ import BlankChatArea from "./BlankChatArea";
 import useSpeechToText from "react-hook-speech-to-text";
 import { backgroundColors } from "./UpdateUser";
 import { FileVideo, MoreVertical, Paperclip, Trash2 } from "lucide-react";
+import { API_ROUTES } from "@/utils/ApiRoutes";
 
 
 
@@ -99,7 +100,7 @@ const ChatArea = () => {
         if (!newMessage.trim()) return;
         try {
             const resp = await axios.get(
-                `/api/chat/chatSuggestion?textContent=${newMessage}`
+                `${API_ROUTES.CHAT.CHAT_SUGGESTION}?textContent=${newMessage}`
             );
             setSuggestionsToShow(resp.data.split(","));
         } catch (err: any) {
@@ -119,7 +120,7 @@ const ChatArea = () => {
     const fetchMessages = async () => {
         try {
             const fetchedMessages = await axios.get(
-                `/api/messages/allMessage/${chatId}`
+                `${API_ROUTES.MESSAGES.ALL_MESSAGES}/${chatId}`
             );
             setMessages(fetchedMessages.data.data);
         } catch (err: any) {
@@ -150,7 +151,7 @@ const ChatArea = () => {
                 try {
                     setNewMessage("");
                     const res = await axios.post(
-                        `/api/messages/newMessage/${chatId}`,
+                        `${API_ROUTES.MESSAGES.NEW_MESSAGE}/${chatId}`,
                         messageData
                     );
                 } catch (err: any) {
@@ -187,7 +188,7 @@ const ChatArea = () => {
         if (messages.length === 0) return;
         try {
             const resp = await axios.get(
-                `/api/chat/replySuggestion?textContent=${messages[messages.length - 1].message
+                `${API_ROUTES.CHAT.REPLY_SUGGESTION}?textContent=${messages[messages.length - 1].message
                 }`
             );
             setSuggestionsToShow(resp.data.split(","));
@@ -212,7 +213,7 @@ const ChatArea = () => {
     const handleDeleteChat = async () => {
         try {
             const res = await axios.delete(
-                `/api/chat/deleteChat/${chatId}`,
+                `${API_ROUTES.CHAT.DELETE_CHAT}/${chatId}`,
                 {
                     data: {
                         loggedUserEmail: user?.email,

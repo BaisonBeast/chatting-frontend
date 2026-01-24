@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import axios from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { useSocket } from "@/context/SocketContext";
+import { API_ROUTES } from "@/utils/ApiRoutes";
 
 interface Invite {
     _id: string;
@@ -52,7 +53,7 @@ const InviteList = () => {
 
     const fetchAllInviteList = async () => {
         try {
-            const resp = await axios.get(`/api/chat/getAllInvites`, {
+            const resp = await axios.get(API_ROUTES.CHAT.GET_ALL_INVITES, {
                 params: {
                     email: user?.email,
                 },
@@ -103,7 +104,7 @@ const InviteList = () => {
 
     const handleAcceptInvite = async (email: string) => {
         try {
-            const resp = await axios.post(`/api/chat/acceptInvite`, {
+            const resp = await axios.post(API_ROUTES.CHAT.ACCEPT_INVITE, {
                 loggedUserEmail: user?.email,
                 newUserEmail: email,
             });
@@ -129,7 +130,7 @@ const InviteList = () => {
 
     const handleRejectInvite = async (email: string) => {
         try {
-            const resp = await axios.post(`/api/chat/rejectInvite`, {
+            const resp = await axios.post(API_ROUTES.CHAT.REJECT_INVITE, {
                 loggedUserEmail: user?.email,
                 newUserEmail: email,
             });
