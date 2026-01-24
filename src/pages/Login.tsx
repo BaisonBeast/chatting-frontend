@@ -12,12 +12,12 @@ import Logo from "../assets/chatting.jpg";
 import { useNavigate } from "react-router-dom";
 import { FaRegistered, FaEyeSlash, FaEye, FaComments } from "react-icons/fa";
 import { useState } from "react";
-import axios from "axios";
+import axios from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import useChatStore from "@/store/useStore";
 import { HashLoader } from "react-spinners";
 
-const baseURL = import.meta.env.VITE_API_URL;
+
 
 export default function Login() {
     const [email, setEmail] = useState<string>("");
@@ -37,7 +37,7 @@ export default function Login() {
         }
         try {
             setLoading(true);
-            const res = await axios.post(`${baseURL}/api/chatUser/login`, {
+            const res = await axios.post(`/api/chatUser/login`, {
                 email,
                 password,
             });

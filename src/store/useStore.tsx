@@ -8,6 +8,7 @@ interface User {
     username: string;
     profilePic: string;
     background: number;
+    token: string;
 }
 
 interface ChatStore {
@@ -57,14 +58,14 @@ const useChatStore = create<ChatStore>((set) => ({
                     : message
             ),
         })),
-        deleteMessage: (messageId) =>
-            set((state) => ({
-                messages: state.messages.map((message) =>
-                    message._id === messageId
-                        ? { ...message, isDeleted: true, message: '' }
-                        : message
-                ),
-            })),
+    deleteMessage: (messageId) =>
+        set((state) => ({
+            messages: state.messages.map((message) =>
+                message._id === messageId
+                    ? { ...message, isDeleted: true, message: '' }
+                    : message
+            ),
+        })),
 }));
 
 export default useChatStore;

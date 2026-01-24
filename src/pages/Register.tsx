@@ -14,12 +14,12 @@ import { CiLogin } from "react-icons/ci";
 import { FaEyeSlash, FaEye, FaComments, FaUser, FaEnvelope } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
+import axios from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import useChatStore from "@/store/useStore";
 import { HashLoader } from "react-spinners";
 
-const baseURL = import.meta.env.VITE_API_URL;
+
 
 export function Register() {
     const [email, setEmail] = useState<string>("");
@@ -57,7 +57,7 @@ export function Register() {
             });
             return;
         }
-        
+
         if (!username.trim()) {
             toast({
                 title: "Username Required",
@@ -65,7 +65,7 @@ export function Register() {
             });
             return;
         }
-        
+
         if (!password.trim() || password.length < 6) {
             toast({
                 title: "Invalid Password",
@@ -83,7 +83,7 @@ export function Register() {
         try {
             setLoading(true);
             const res = await axios.post(
-                `${baseURL}/api/chatUser/register`,
+                `/api/chatUser/register`,
                 formData
             );
             if (res.data.status === "SUCCESS") {
@@ -221,10 +221,10 @@ export function Register() {
                                 <div className="flex-shrink-0">
                                     {previewImage ? (
                                         <div className="w-16 h-16 rounded-full overflow-hidden">
-                                            <img 
-                                                src={previewImage} 
+                                            <img
+                                                src={previewImage}
                                                 alt="Profile Preview"
-                                                className="w-full h-full object-cover" 
+                                                className="w-full h-full object-cover"
                                             />
                                         </div>
                                     ) : (

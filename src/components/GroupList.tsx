@@ -3,7 +3,7 @@ import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
-} from "@radix-ui/react-collapsible";
+} from "@/components/ui/collapsible";
 import { useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
@@ -17,7 +17,14 @@ const GroupList = () => {
                 <CollapsibleTrigger asChild>
                     <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
                         Group's
-                        {groupIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                        <div className="flex gap-2 items-center">
+                            {groupList.length > 0 && (
+                                <p className="bg-red-300 rounded-full pl-2 pr-2">
+                                    {groupList.length}
+                                </p>
+                            )}
+                            {groupIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                        </div>
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

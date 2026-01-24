@@ -5,7 +5,7 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import useChatStore from "@/store/useStore";
-import axios from "axios";
+import axios from "@/services/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { IoIosArrowDown } from "react-icons/io";
@@ -14,7 +14,7 @@ import moment from "moment";
 import { SingleChat } from "@/interfaces/chat.interface";
 import { useSocket } from "@/context/SocketContext";
 
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 interface ChatListProps {
     searchTerm: string;
@@ -119,7 +119,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
 
     const fetchAllChatList = async () => {
         try {
-            const resp = await axios.get(`${API_URL}/api/chat/getAllChats`, {
+            const resp = await axios.get(`/api/chat/getAllChats`, {
                 params: {
                     email: user?.email,
                 },
@@ -144,7 +144,14 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                 <CollapsibleTrigger asChild>
                     <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
                         Chat's
-                        {chatIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                        <div className="flex gap-2 items-center">
+                            {chatList.length > 0 && (
+                                <p className="bg-red-300 rounded-full pl-2 pr-2">
+                                    {chatList.length}
+                                </p>
+                            )}
+                            {chatIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                        </div>
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -156,11 +163,10 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                     className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
                                     onClick={() => setSelectedChat(indx)}
                                     style={{
-                                        background: `${
-                                            selectedChat === indx
-                                                ? "#E5E7EB"
-                                                : ""
-                                        }`,
+                                        background: `${selectedChat === indx
+                                            ? "#E5E7EB"
+                                            : ""
+                                            }`,
                                     }}
                                 >
                                     <div className="flex items-center">
@@ -187,7 +193,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                         </Avatar>
                                         <span className="ml-2 font-medium">
                                             {chat.participant.username.length >
-                                            20
+                                                20
                                                 ? chat.participant.username.slice(
                                                     0,
                                                     20

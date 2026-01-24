@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "@/services/api";
 import useChatStore from "../store/useStore";
 import { io, Socket } from "socket.io-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,7 +57,7 @@ const Sidebar = () => {
         }
         try {
             setLoading(true);
-            const resp = await axios.post(`${API_URL}/api/chat/inviteUser`, {
+            const resp = await axios.post(`/api/chat/inviteUser`, {
                 invitedEmail: inviteEmail,
                 inviteeEmail: user?.email,
                 inviteeUsername: user?.username,

@@ -12,12 +12,12 @@ import { Button } from "./ui/button";
 import useChatStore from "@/store/useStore";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import axios from "axios";
+import axios from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Camera } from "lucide-react";
 
-export const backgroundColors = ["#f8f9fa", "#f1f3f5", "#e9ecef", "#dee2e6"];
-const API_URL = import.meta.env.VITE_API_URL;
+export const backgroundColors = ["bg-blue-100", "bg-green-100", "bg-purple-100", "bg-orange-100"];
+
 
 interface UpdateUserProps {
     updateProfileOpen: boolean;
@@ -71,7 +71,7 @@ const UpdateUser = ({
         try {
             setLoading(true);
             const resp = await axios.post(
-                `${API_URL}/api/chatUser/update`,
+                `/api/chatUser/update`,
                 formData
             );
             setUser(resp.data.data);
@@ -216,11 +216,10 @@ const UpdateUser = ({
                                                 }
                                                 className={`w-12 h-12 rounded-full ${colorClass} 
                         transform transition-all duration-300  border-2
-                        ${
-                            selectedBackground === index
-                                ? "scale-110 border-4 border-white shadow-lg"
-                                : "hover:scale-105 opacity-70 hover:opacity-100"
-                        }`}
+                        ${selectedBackground === index
+                                                        ? "scale-110 border-4 border-white shadow-lg"
+                                                        : "hover:scale-105 opacity-70 hover:opacity-100"
+                                                    }`}
                                             />
                                         )
                                     )}

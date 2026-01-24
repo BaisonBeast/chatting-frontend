@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowUp } from "react-icons/io";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import axios from "axios";
+import axios from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { useSocket } from "@/context/SocketContext";
 
@@ -20,7 +20,7 @@ interface Invite {
     email: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 const InviteList = () => {
     const { user } = useChatStore();
@@ -52,7 +52,7 @@ const InviteList = () => {
 
     const fetchAllInviteList = async () => {
         try {
-            const resp = await axios.get(`${API_URL}/api/chat/getAllInvites`, {
+            const resp = await axios.get(`/api/chat/getAllInvites`, {
                 params: {
                     email: user?.email,
                 },
@@ -103,7 +103,7 @@ const InviteList = () => {
 
     const handleAcceptInvite = async (email: string) => {
         try {
-            const resp = await axios.post(`${API_URL}/api/chat/acceptInvite`, {
+            const resp = await axios.post(`/api/chat/acceptInvite`, {
                 loggedUserEmail: user?.email,
                 newUserEmail: email,
             });
@@ -129,7 +129,7 @@ const InviteList = () => {
 
     const handleRejectInvite = async (email: string) => {
         try {
-            const resp = await axios.post(`${API_URL}/api/chat/rejectInvite`, {
+            const resp = await axios.post(`/api/chat/rejectInvite`, {
                 loggedUserEmail: user?.email,
                 newUserEmail: email,
             });
@@ -163,9 +163,9 @@ const InviteList = () => {
                     <div className="p-5 w-full bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
                         Invite's
                         <div className="flex gap-2 items-center">
-                            {InviteList.length > 0 && (
+                            {inviteList.length > 0 && (
                                 <p className="bg-red-300 rounded-full pl-2 pr-2">
-                                    {InviteList.length}
+                                    {inviteList.length}
                                 </p>
                             )}
                             {inviteIsOpen ? (
@@ -199,7 +199,7 @@ const InviteList = () => {
                                     <span className="ml-2 font-medium">
                                         {invite.username.length > 20
                                             ? invite.username.slice(0, 25) +
-                                                "..."
+                                            "..."
                                             : invite.username.slice(0, 25)
                                         }
                                     </span>

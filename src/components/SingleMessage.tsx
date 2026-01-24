@@ -12,13 +12,13 @@ import {
     AlertTriangle,
 } from "lucide-react";
 import moment from "moment";
-import axios from "axios";
+import axios from "@/services/api";
 import { useSocket } from "@/context/SocketContext";
 import { useToast } from "@/hooks/use-toast";
 import useChatStore from "@/store/useStore";
 import { Message } from "@/interfaces/message.interface";
 
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 interface SingleMessageProps {
     message: Message;
@@ -51,7 +51,7 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     // Handle message delete
     const handleDeleteMessage = async (id: string) => {
         try {
-            await axios.delete(`${API_URL}/api/messages/delete/${id}`, {
+            await axios.delete(`/api/messages/delete/${id}`, {
                 data: {
                     loggedUserEmail: user?.email,
                     otherSideUserEmail:
@@ -76,7 +76,7 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     // Handle like message
     const handleLike = async () => {
         try {
-            await axios.post(`${API_URL}/api/messages/likeMessage`, {
+            await axios.post(`/api/messages/likeMessage`, {
                 messageId: message._id,
                 likeGivenUserEmail: user?.email,
                 otherSideUserEmail: chatList[selectedChat].participant.email,
@@ -122,13 +122,12 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
 
     // Render timestamp
     const renderTimestamp = () => {
-        const timeFormat = `${
-            day === 0
+        const timeFormat = `${day === 0
                 ? "Today at"
                 : day === 1
-                ? "Yesterday at"
-                : `${day} days ago at`
-        } ${moment(message.updatedAt).format("LT")}`;
+                    ? "Yesterday at"
+                    : `${day} days ago at`
+            } ${moment(message.updatedAt).format("LT")}`;
 
         return (
             <span className="text-xs text-gray-500 mt-1 block text-right">

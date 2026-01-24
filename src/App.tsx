@@ -18,7 +18,7 @@ function App() {
                     <Route
                         path="/"
                         element={
-                            user !== null ? (
+                            user && user.token ? (
                                 <Chatting />
                             ) : (
                                 <Navigate to="/login" />
@@ -28,13 +28,13 @@ function App() {
                     <Route
                         path="/login"
                         element={
-                            user === null ? <Login /> : <Navigate to="/" />
+                            !user || !user.token ? <Login /> : <Navigate to="/" />
                         }
                     />
                     <Route
                         path="/register"
                         element={
-                            user === null ? <Register /> : <Navigate to="/" />
+                            !user || !user.token ? <Register /> : <Navigate to="/" />
                         }
                     />
                     <Route path="/*" element={<NotFound />} />

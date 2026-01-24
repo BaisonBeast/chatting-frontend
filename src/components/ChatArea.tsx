@@ -4,7 +4,7 @@ import { IoIosAttach } from "react-icons/io";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { CiMicrophoneOn, CiMicrophoneOff } from "react-icons/ci";
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import axios from "@/services/api";
 import useChatStore from "../store/useStore";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { AiOutlineClose } from "react-icons/ai";
@@ -23,7 +23,7 @@ import useSpeechToText from "react-hook-speech-to-text";
 import { backgroundColors } from "./UpdateUser";
 import { FileVideo, MoreVertical, Paperclip, Trash2 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 const ChatArea = () => {
     const {
@@ -99,22 +99,18 @@ const ChatArea = () => {
         if (!newMessage.trim()) return;
         try {
             const resp = await axios.get(
-                `${API_URL}/api/chat/chatSuggestion?textContent=textContent=${newMessage}`
+                `/api/chat/chatSuggestion?textContent=${newMessage}`
             );
             setSuggestionsToShow(resp.data.split(","));
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
 
-                toast({
-                    title: "Please try again",
-                    description: `${message}`,
-                });
+                console.error("Suggestion fetch failed:", message);
+
             } else {
-                toast({
-                    title: "Something went wrong",
-                    description: "Please try again after some time...",
-                });
+                console.error("Suggestion fetch error");
+
             }
             console.error(err);
         }
@@ -123,7 +119,7 @@ const ChatArea = () => {
     const fetchMessages = async () => {
         try {
             const fetchedMessages = await axios.get(
-                `${API_URL}/api/messages/allMessage/${chatId}`
+                `/api/messages/allMessage/${chatId}`
             );
             setMessages(fetchedMessages.data.data);
         } catch (err: any) {
@@ -154,7 +150,7 @@ const ChatArea = () => {
                 try {
                     setNewMessage("");
                     const res = await axios.post(
-                        `${API_URL}/api/messages/newMessage/${chatId}`,
+                        `/api/messages/newMessage/${chatId}`,
                         messageData
                     );
                 } catch (err: any) {
@@ -191,8 +187,7 @@ const ChatArea = () => {
         if (messages.length === 0) return;
         try {
             const resp = await axios.get(
-                `${API_URL}/api/chat/replySuggestion?textContent=${
-                    messages[messages.length - 1].message
+                `/api/chat/replySuggestion?textContent=${messages[messages.length - 1].message
                 }`
             );
             setSuggestionsToShow(resp.data.split(","));
@@ -217,7 +212,7 @@ const ChatArea = () => {
     const handleDeleteChat = async () => {
         try {
             const res = await axios.delete(
-                `${API_URL}/api/chat/deleteChat/${chatId}`,
+                `/api/chat/deleteChat/${chatId}`,
                 {
                     data: {
                         loggedUserEmail: user?.email,
@@ -289,7 +284,7 @@ const ChatArea = () => {
                                 src={
                                     selectedChat !== -1
                                         ? chatList[selectedChat]?.participant
-                                              ?.profilePic
+                                            ?.profilePic
                                         : "https://github.com/shadcn.png"
                                 }
                                 alt="Chat participant avatar"
@@ -298,9 +293,9 @@ const ChatArea = () => {
                             <AvatarFallback className="bg-emerald-50 text-emerald-700 font-bold">
                                 {selectedChat !== -1
                                     ? getInitials(
-                                          chatList[selectedChat]?.participant
-                                              ?.username
-                                      )
+                                        chatList[selectedChat]?.participant
+                                            ?.username
+                                    )
                                     : "CN"}
                             </AvatarFallback>
                         </Avatar>
@@ -309,7 +304,7 @@ const ChatArea = () => {
                             <h2 className="text-xl font-bold text-emerald-800 tracking-tight">
                                 {selectedChat !== -1
                                     ? chatList[selectedChat].participant
-                                          .username
+                                        .username
                                     : "General Chat"}
                             </h2>
                             <p className="text-xs text-gray-500">
@@ -384,12 +379,8 @@ const ChatArea = () => {
                 </div>
             </nav>
             <div
-                className="flex flex-col flex-grow overflow-y-auto"
-                style={{
-                    background: `${
-                        backgroundColors[user?.background as number]
-                    }`,
-                }}
+                className={`flex flex-col flex-grow overflow-y-auto ${backgroundColors[user?.background as number] || "bg-slate-50"
+                    }`}
                 ref={containerRef}
             >
                 {selectedChat !== -1 ? (
