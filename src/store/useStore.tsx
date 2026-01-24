@@ -25,6 +25,8 @@ interface ChatStore {
     removeChat: (chatId: string) => void;
     addLike: (messageId: string, name: string) => void;
     deleteMessage: (messageId: string) => void;
+    onlineUsers: string[];
+    setOnlineUsers: (users: string[]) => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
@@ -66,6 +68,8 @@ const useChatStore = create<ChatStore>((set) => ({
                     : message
             ),
         })),
+    onlineUsers: [],
+    setOnlineUsers: (users) => set(() => ({ onlineUsers: users })),
 }));
 
 export default useChatStore;

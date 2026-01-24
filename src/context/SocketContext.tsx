@@ -5,6 +5,7 @@ import {
     getSocket,
 } from "@/services/socketService";
 import { Socket } from "socket.io-client";
+import useChatStore from "@/store/useStore";
 
 interface SocketContextProps {
     socket: Socket | null;
@@ -16,12 +17,34 @@ export const SocketProvider: React.FC<{
     userEmail: string;
     children: React.ReactNode;
 }> = ({ userEmail, children }) => {
+    const { setOnlineUsers, chatList } = useChatStore();
+
     useEffect(() => {
+        let heartbeatInterval: NodeJS.Timeout;
         if (userEmail) {
-            connectSocket(userEmail);
+            const socket = connectSocket(userEmail);
+
+            heartbeatInterval = setInterval(() => {
+                if (socket && socket.connected) {
+                    socket.emit("heartbeat", userEmail);
+
+                    // Poll for online status of friends
+                    if (chatList && chatList.length > 0) {
+                        const friendEmails = chatList.map(chat => chat.participant.email);
+                        socket.emit("checkOnlineStatus", friendEmails);
+                    }
+                }
+            }, 5000);
+
+            socket.on("onlineStatusUpdate", (users: string[]) => {
+                setOnlineUsers(users);
+            });
         }
-        return () => disconnectSocket();
-    }, [userEmail]);
+        return () => {
+            clearInterval(heartbeatInterval);
+            disconnectSocket();
+        };
+    }, [userEmail, chatList]);
 
     return (
         <SocketContext.Provider value={{ socket: getSocket() }}>

@@ -36,6 +36,7 @@ const ChatArea = () => {
         chatList,
         messages,
         setSelectedChat,
+        onlineUsers
     } = useChatStore();
     const [showCrossIcon, setShowCrossIcon] = useState(false);
     const [newMessage, setNewMessage] = useState("");
@@ -310,7 +311,7 @@ const ChatArea = () => {
                             </h2>
                             <p className="text-xs text-gray-500">
                                 {selectedChat !== -1
-                                    ? "Active now"
+                                    ? onlineUsers.includes(chatList[selectedChat].participant.email) ? "🟢 Active now" : "Offline"
                                     : "Default channel"}
                             </p>
                         </div>
