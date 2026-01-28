@@ -4,76 +4,108 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import useChatStore from "@/store/useStore";
+import axios from "@/services/api";
+import { API_ROUTES } from "@/utils/ApiRoutes";
+import { Users } from "lucide-react";
+import { useSocket } from "@/context/SocketContext";
+import { useToast } from "@/hooks/use-toast";
 
 const GroupList = () => {
+    const { groupList, setGroupList, setSelectedChat, setSelectedChatType } = useChatStore();
     const [groupIsOpen, setGroupIsOpen] = useState(false);
-    const [groupList, setGroupList] = useState([]);
+
+    const { toast } = useToast();
+    const { socket } = useSocket();
+
+    useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                const { data } = await axios.get(API_ROUTES.GROUP.GET_ALL);
+                if (data.status === "SUCCESS") {
+                    setGroupList(data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch groups", error);
+            }
+        };
+        fetchGroups();
+    }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("createGroup", (data) => {
+            setGroupList([...groupList, data.newChat]);
+            toast({
+                title: "New Group",
+                description: data.message,
+            });
+        });
+
+        return () => {
+            socket.off("createGroup");
+        }
+    }, [socket, groupList]);
 
     return (
         <div className="w-full max-w-md mx-auto">
             <Collapsible open={groupIsOpen} onOpenChange={setGroupIsOpen}>
                 <CollapsibleTrigger asChild>
                     <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
-                        Group's
-                        <div className="flex gap-2 items-center">
+                        <div className="flex items-center gap-2">
+                            Group's
+                        </div>
+                        <div className="flex gap-2 items-center text-gray-400">
                             {groupList.length > 0 && (
-                                <p className="bg-red-300 rounded-full pl-2 pr-2">
+                                <span className="bg-red-300 text-black text-sm px-2 py-0.5 rounded-full font-bold">
                                     {groupList.length}
-                                </p>
+                                </span>
                             )}
-                            {groupIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                            {groupIsOpen ? <IoIosArrowUp className="text-black" /> : <IoIosArrowDown className="text-black" />}
                         </div>
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                     <div>
                         {groupList.length > 0 ? (
-                            groupList.map((chat, indx) => (
+                            groupList.map((group, indx) => (
                                 <div
-                                    key={indx}
-                                    className="flex items-center justify-between px-4 py-2 bg-gray-100 rounded-md"
+                                    key={group._id || indx}
+                                    onClick={() => {
+                                        setSelectedChat(indx);
+                                        setSelectedChatType("group");
+                                    }}
+                                    className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
                                 >
-                                    <div className="flex items-center">
-                                        <Avatar>
-                                            {/* {groupList.avatar ? (
-                                                        <AvatarImage
-                                                            src={
-                                                                groupList.avatar
-                                                            }
-                                                            alt={
-                                                                groupList.username
-                                                            }
-                                                        />
-                                                    ) : (
-                                                        <AvatarFallback>
-                                                            {getInitials(
-                                                                chat.chatName
-                                                            )}
-                                                        </AvatarFallback>
-                                                    )} */}
+                                    <div className="flex items-center space-x-3">
+                                        <Avatar className="h-10 w-10 border border-gray-200">
+                                            <AvatarImage src={group.groupIcon} alt={group.groupName} />
+                                            <AvatarFallback className="bg-blue-100 text-blue-600 font-bold">
+                                                {group.groupName[0]?.toUpperCase()}
+                                            </AvatarFallback>
                                         </Avatar>
-                                        <span className="ml-2 font-medium">
-                                            {/* {groupList.username} */}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        {/* {moment(
-                                                    groupList.chatTime
-                                                ).format("LT")} */}
+                                        <div>
+                                            <p className="font-medium">{group.groupName}</p>
+                                            <p className="text-xs text-gray-500 truncate max-w-[150px]">
+                                                {group.participants?.length} members
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-gray-600 bg-slate-200 pt-3 pb-3 pl-3">
-                                Please create groups....
-                            </p>
+                            <div className="p-4 text-center text-gray-500 text-sm">
+                                <p>No groups yet.</p>
+                                <p className="text-xs mt-1">Create one to get started!</p>
+                            </div>
                         )}
                     </div>
                 </CollapsibleContent>
             </Collapsible>
-        </div>
+        </div >
     );
 };
 

@@ -17,5 +17,9 @@ export const API_ROUTES = {
     MESSAGES: {
         ALL_MESSAGES: "/api/messages/allMessage", // /:chatId
         NEW_MESSAGE: "/api/messages/newMessage", // /:chatId
+    },
+    GROUP: {
+        CREATE: "/api/group/create",
+        GET_ALL: "/api/group/getAllGroups",
     }
 };

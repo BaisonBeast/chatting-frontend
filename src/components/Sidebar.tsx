@@ -19,8 +19,9 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import InviteList from "./InviteList";
 import ChatList from "./ChatList";
 import GroupList from "./GroupList";
-import { LogOut, MoreVertical, Settings, UserPlus } from "lucide-react";
+import { LogOut, MoreVertical, Settings, UserPlus, Users } from "lucide-react";
 import UpdateUser from "./UpdateUser";
+import CreateGroupModal from "./CreateGroupModal";
 import { API_ROUTES } from "@/utils/ApiRoutes";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -34,6 +35,7 @@ const Sidebar = () => {
     const [inviteEmail, setInviteEmail] = useState("");
     const [loading, setLoading] = useState<boolean>(false);
     const [updateProfileOpen, setUpdateProfileOpen] = useState(false);
+    const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
 
     const { toast } = useToast();
 
@@ -149,6 +151,22 @@ const Sidebar = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-4">
+                        <CreateGroupModal
+                            isOpen={isCreateGroupOpen}
+                            onClose={() => setIsCreateGroupOpen(false)}
+                        />
+
+                        <button
+                            onClick={() => setIsCreateGroupOpen(true)}
+                            className="hover:bg-gray-100 p-2 rounded-full transition-colors group"
+                            title="Create Group"
+                        >
+                            <Users
+                                size={24}
+                                className="text-gray-600 group-hover:text-blue-500 transition-colors"
+                            />
+                        </button>
+
                         {/* Invite Friend Popover */}
                         <Popover>
                             <PopoverTrigger className="hover:bg-gray-100 p-2 rounded-full transition-colors group">

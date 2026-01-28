@@ -27,6 +27,11 @@ interface ChatStore {
     deleteMessage: (messageId: string) => void;
     onlineUsers: string[];
     setOnlineUsers: (users: string[]) => void;
+    groupList: any[];
+    setGroupList: (groupList: any[]) => void;
+    addGroup: (group: any) => void;
+    selectedChatType: "chat" | "group";
+    setSelectedChatType: (type: "chat" | "group") => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
@@ -70,6 +75,11 @@ const useChatStore = create<ChatStore>((set) => ({
         })),
     onlineUsers: [],
     setOnlineUsers: (users) => set(() => ({ onlineUsers: users })),
+    groupList: [],
+    setGroupList: (groupList) => set(() => ({ groupList })),
+    addGroup: (group) => set((state) => ({ groupList: [...state.groupList, group] })),
+    selectedChatType: "chat",
+    setSelectedChatType: (type) => set(() => ({ selectedChatType: type })),
 }));
 
 export default useChatStore;

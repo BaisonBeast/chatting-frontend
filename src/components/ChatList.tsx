@@ -29,6 +29,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
         chatList,
         setChatList,
         addChat,
+        setSelectedChatType,
     } = useChatStore();
     const { toast } = useToast();
     const { socket } = useSocket();
@@ -147,9 +148,9 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                         Chat's
                         <div className="flex gap-2 items-center">
                             {chatList.length > 0 && (
-                                <p className="bg-red-300 rounded-full pl-2 pr-2">
+                                <span className="bg-red-300 text-black text-sm px-2 py-0.5 rounded-full font-bold">
                                     {chatList.length}
-                                </p>
+                                </span>
                             )}
                             {chatIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
                         </div>
@@ -162,7 +163,10 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                 <div
                                     key={chat.id}
                                     className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-50 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
-                                    onClick={() => setSelectedChat(indx)}
+                                    onClick={() => {
+                                        setSelectedChat(indx);
+                                        setSelectedChatType("chat");
+                                    }}
                                     style={{
                                         background: `${selectedChat === indx
                                             ? "#E5E7EB"
