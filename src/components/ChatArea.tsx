@@ -21,8 +21,9 @@ import SingleMessage from "./SingleMessage";
 import BlankChatArea from "./BlankChatArea";
 import useSpeechToText from "react-hook-speech-to-text";
 import { backgroundColors } from "./UpdateUser";
-import { FileVideo, MoreVertical, Paperclip, Trash2 } from "lucide-react";
+import { FileVideo, MoreVertical, Paperclip, Trash2, Video, File, Image } from "lucide-react";
 import { API_ROUTES } from "@/utils/ApiRoutes";
+import VideoCall from "./VideoCall";
 
 
 
@@ -51,6 +52,10 @@ const ChatArea = () => {
     const { toast } = useToast();
     const { socket } = useSocket();
     const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    // Video Call State
+    const [inCall, setInCall] = useState(false);
+    const [incomingCall, setIncomingCall] = useState<{ signal: any; from: string; name: string } | null>(null);
 
     useEffect(() => {
         if (containerRef.current) {
@@ -88,10 +93,17 @@ const ChatArea = () => {
             setSelectedChat(-1);
         });
 
+        socket.on("callUser", (data) => {
+            // Only accept call if we are not already in one? or just show notification
+            setIncomingCall({ signal: data.signal, from: data.from, name: data.name });
+            setInCall(true); // Open the video call interface immediately with "Incoming" state
+        });
+
         return () => {
             if (socket) {
                 socket.off("newMessage");
                 socket.off("removeChat");
+                socket.off("callUser");
                 socket.emit("leaveChat");
             }
         };
@@ -277,7 +289,21 @@ const ChatArea = () => {
     };
 
     return (
-        <div className="w-3/4 h-screen flex flex-col">
+        <div className="w-3/4 h-screen flex flex-col relative">
+            {inCall && user && selectedChat !== -1 && (
+                <VideoCall
+                    chatIds={{
+                        currentUserId: user.email!,
+                        chatPartnerId: chatList[selectedChat].participant.email
+                    }}
+                    onEndCall={() => {
+                        setInCall(false);
+                        setIncomingCall(null);
+                    }}
+                    incomingCall={incomingCall ? incomingCall : undefined}
+                    isIncomingCall={!!incomingCall}
+                />
+            )}
             <nav className="flex items-center justify-between p-2 bg-white shadow-md border-b border-gray-100">
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-4">
@@ -320,6 +346,22 @@ const ChatArea = () => {
 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-4">
+                    {selectedChat !== -1 && (
+                        <button
+                            onClick={() => {
+                                setIncomingCall(null); // Ensure we are caller
+                                setInCall(true);
+                            }}
+                            className="rounded-full p-2 hover:bg-emerald-50 transition-colors group"
+                            title="Video Call"
+                        >
+                            <Video
+                                size={22}
+                                className="text-gray-600 group-hover:text-emerald-600 transition-colors"
+                            />
+                        </button>
+                    )}
+
                     {/* Attachment Popover */}
                     <Popover>
                         <PopoverTrigger className="rounded-full p-2 hover:bg-gray-100 transition-colors group">
