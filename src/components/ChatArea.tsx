@@ -118,7 +118,7 @@ const ChatArea = () => {
     }, [socket, chatId]);
 
     const handleFetchSuggestions = async () => {
-        if (!newMessage.trim()) return;
+        if (!newMessage?.trim()) return;
         try {
             const resp = await axios.get(
                 `${API_ROUTES.CHAT.CHAT_SUGGESTION}?textContent=${newMessage}`
@@ -162,7 +162,7 @@ const ChatArea = () => {
     ) => {
         if (e.key === "Enter" && selectedChat !== -1) {
             e.preventDefault();
-            if (newMessage.trim()) {
+            if (newMessage?.trim()) {
                 const messageData = {
                     message: newMessage,
                     loggedInUser: user?.email,
@@ -197,7 +197,7 @@ const ChatArea = () => {
 
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
-            if (newMessage.trim()) {
+            if (newMessage?.trim()) {
                 handleFetchSuggestions();
             }
         }, 1500);

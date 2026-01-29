@@ -31,7 +31,7 @@ export default function Login() {
     const { setUser } = useChatStore();
 
     const handleLogin = async () => {
-        if (!email.trim() || !password.trim()) {
+        if (!email?.trim() || !password?.trim()) {
             toast({ title: `Please provide the credentials...` });
             return;
         }

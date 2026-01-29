@@ -45,7 +45,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
     };
 
     const handleCreateGroup = async () => {
-        if (!groupName.trim()) {
+        if (!groupName?.trim()) {
             toast({ title: "Group name is required", variant: "destructive" });
             return;
         }

@@ -59,7 +59,7 @@ export function Register() {
             return;
         }
 
-        if (!username.trim()) {
+        if (!username?.trim()) {
             toast({
                 title: "Username Required",
                 description: "Please enter a username.",
@@ -67,7 +67,7 @@ export function Register() {
             return;
         }
 
-        if (!password.trim() || password.length < 6) {
+        if (!password?.trim() || password.length < 6) {
             toast({
                 title: "Invalid Password",
                 description: "Password must be at least 6 characters long.",
