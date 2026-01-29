@@ -19,17 +19,17 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import InviteList from "./InviteList";
 import ChatList from "./ChatList";
 import GroupList from "./GroupList";
-import { LogOut, MoreVertical, Settings, UserPlus, Users } from "lucide-react";
+import { LogOut, MoreVertical, Settings, UserPlus, Users, Monitor } from "lucide-react";
 import UpdateUser from "./UpdateUser";
 import CreateGroupModal from "./CreateGroupModal";
 import { API_ROUTES } from "@/utils/ApiRoutes";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-let socket: Socket;
+
 
 const Sidebar = () => {
-    const { addChat, setUser, user } = useChatStore();
+    const { addChat, setUser, user, isInviteOpen, setInviteOpen } = useChatStore();
 
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [inviteEmail, setInviteEmail] = useState("");
@@ -39,15 +39,7 @@ const Sidebar = () => {
 
     const { toast } = useToast();
 
-    useEffect(() => {
-        if (!socket) socket = io(API_URL);
-        socket.on("cratedChat", (message) => {
-            addChat(message);
-        });
-        return () => {
-            socket.off("crateChat");
-        };
-    }, []);
+
 
     const handleInvite = async () => {
         if (inviteEmail === "") {
@@ -61,10 +53,7 @@ const Sidebar = () => {
         try {
             setLoading(true);
             const resp = await axios.post(API_ROUTES.CHAT.INVITE_USER, {
-                invitedEmail: inviteEmail,
-                inviteeEmail: user?.email,
-                inviteeUsername: user?.username,
-                inviteeProfilePic: user?.profilePic,
+                recipientEmail: inviteEmail,
             });
             toast({
                 title: `${resp.data.message}`,
@@ -115,7 +104,7 @@ const Sidebar = () => {
     }
 
     return (
-        <div className="w-1/4 h-screen flex flex-col">
+        <div className="w-1/4 min-w-[320px] h-screen flex flex-col">
             {/* Navbar */}
             <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
                 <div className="flex w-full items-center justify-between px-4 py-3 max-w-7xl mx-auto">
@@ -168,7 +157,7 @@ const Sidebar = () => {
                         </button>
 
                         {/* Invite Friend Popover */}
-                        <Popover>
+                        <Popover open={isInviteOpen} onOpenChange={setInviteOpen}>
                             <PopoverTrigger className="hover:bg-gray-100 p-2 rounded-full transition-colors group">
                                 <UserPlus
                                     size={24}
@@ -244,6 +233,42 @@ const Sidebar = () => {
                                             className="mr-3 text-gray-500 group-hover:text-blue-500"
                                         />
                                         Settings
+                                    </div>
+                                    <div
+                                        className="
+                    flex items-center px-4 py-2 
+                    hover:bg-gray-100 cursor-pointer 
+                    transition-colors group
+                  "
+                                        onClick={async () => {
+                                            if (!user) return;
+                                            try {
+                                                const resp = await axios.post(API_ROUTES.AUTH.DEMO_USER, {
+                                                    email: user.email,
+                                                });
+                                                const demoUser = resp.data.data;
+                                                const dataStr = encodeURIComponent(JSON.stringify(demoUser));
+                                                const width = 1000;
+                                                const height = 800;
+                                                const left = window.screen.width / 2 - width / 2;
+                                                const top = window.screen.height / 2 - height / 2;
+
+                                                window.open(
+                                                    `/?simulator=true&data=${dataStr}`,
+                                                    "Simulator",
+                                                    `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+                                                );
+                                            } catch (err) {
+                                                console.error("Failed to start simulator", err);
+                                                toast({ title: "Failed to start simulator" });
+                                            }
+                                        }}
+                                    >
+                                        <Monitor
+                                            size={20}
+                                            className="mr-3 text-gray-500 group-hover:text-blue-500"
+                                        />
+                                        Simulator
                                     </div>
                                     <div
                                         className="

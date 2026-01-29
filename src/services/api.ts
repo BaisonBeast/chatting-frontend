@@ -8,7 +8,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const userStr = localStorage.getItem("user");
+        const params = new URLSearchParams(window.location.search);
+        const isSimulator = params.get("simulator") === "true";
+        const storage = isSimulator ? sessionStorage : localStorage;
+
+        const userStr = storage.getItem("user");
         if (userStr) {
             const user = JSON.parse(userStr);
             if (user?.token) {

@@ -3,6 +3,7 @@ export const API_ROUTES = {
         LOGIN: "/api/chatUser/login",
         REGISTER: "/api/chatUser/register",
         UPDATE: "/api/chatUser/update",
+        DEMO_USER: "/api/chatUser/demo-user",
     },
     CHAT: {
         INVITE_USER: "/api/chat/inviteUser",

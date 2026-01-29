@@ -1,7 +1,9 @@
 import React from "react";
 import { MessageCircle, Users, Network } from "lucide-react";
+import useChatStore from "@/store/useStore";
 
 const BlankChatArea = () => {
+    const { setInviteOpen, setChatListOpen } = useChatStore();
     return (
         <div className="flex flex-col md:flex-row justify-center items-center h-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-8">
             <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12">
@@ -39,6 +41,7 @@ const BlankChatArea = () => {
                     {/* Call to Action */}
                     <div className="mt-6 flex justify-center md:justify-start space-x-4">
                         <button
+                            onClick={() => setChatListOpen(true)}
                             className="
               px-6 py-3 
               bg-gradient-to-r from-blue-500 to-purple-600 
@@ -59,6 +62,7 @@ const BlankChatArea = () => {
                             />
                         </button>
                         <button
+                            onClick={() => setInviteOpen(true)}
                             className="
               px-6 py-3 
               border-2 border-blue-500 

@@ -32,10 +32,33 @@ interface ChatStore {
     addGroup: (group: any) => void;
     selectedChatType: "chat" | "group";
     setSelectedChatType: (type: "chat" | "group") => void;
+    isInviteOpen: boolean;
+    setInviteOpen: (open: boolean) => void;
+    isChatListOpen: boolean;
+    setChatListOpen: (open: boolean) => void;
 }
 
+const params = new URLSearchParams(window.location.search);
+const isSimulator = params.get("simulator") === "true";
+const storage = isSimulator ? sessionStorage : localStorage;
+
+const initUser = () => {
+    const dataParam = params.get("data");
+    if (isSimulator && dataParam) {
+        try {
+            const user = JSON.parse(decodeURIComponent(dataParam));
+            storage.setItem("user", JSON.stringify(user));
+            window.history.replaceState({}, document.title, window.location.pathname + "?simulator=true");
+            return user;
+        } catch (e) {
+            console.error("Failed to parse simulator data", e);
+        }
+    }
+    return JSON.parse(storage.getItem("user") || "null");
+};
+
 const useChatStore = create<ChatStore>((set) => ({
-    user: JSON.parse(localStorage.getItem("user") || "null"),
+    user: initUser(),
     selectedChat: -1,
     setSelectedChat: (selectedChat) => set(() => ({ selectedChat })),
     messages: [],
@@ -48,8 +71,8 @@ const useChatStore = create<ChatStore>((set) => ({
         set((state) => ({ chatList: [...state.chatList, chat] })),
     setMessages: (messages) => set(() => ({ messages })),
     setUser: (user: User | null) => {
-        if (user != null) localStorage.setItem("user", JSON.stringify(user));
-        else localStorage.removeItem("user");
+        if (user != null) storage.setItem("user", JSON.stringify(user));
+        else storage.removeItem("user");
         set(() => ({ user }));
     },
     setChatList: (chatList) => set(() => ({ chatList })),
@@ -80,6 +103,10 @@ const useChatStore = create<ChatStore>((set) => ({
     addGroup: (group) => set((state) => ({ groupList: [...state.groupList, group] })),
     selectedChatType: "chat",
     setSelectedChatType: (type) => set(() => ({ selectedChatType: type })),
+    isInviteOpen: false,
+    setInviteOpen: (isInviteOpen) => set(() => ({ isInviteOpen })),
+    isChatListOpen: false, // Default to false or true depending on preference, likely false initially
+    setChatListOpen: (isChatListOpen) => set(() => ({ isChatListOpen })),
 }));
 
 export default useChatStore;

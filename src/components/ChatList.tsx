@@ -16,7 +16,6 @@ import { useSocket } from "@/context/SocketContext";
 import { API_ROUTES } from "@/utils/ApiRoutes";
 
 
-
 interface ChatListProps {
     searchTerm: string;
 }
@@ -30,11 +29,13 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
         setChatList,
         addChat,
         setSelectedChatType,
+        isChatListOpen,
+        setChatListOpen,
     } = useChatStore();
     const { toast } = useToast();
     const { socket } = useSocket();
 
-    const [chatIsOpen, setchatIsOpen] = useState(false);
+    // Removed local chatIsOpen state
 
     useEffect(() => {
         fetchAllChatList();
@@ -45,7 +46,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
 
         socket.on("createChat", (data) => {
             const otherParticipant =
-                data.newChat.participants[0].email === user?.email
+                data.newChat.participants[0].email.toLowerCase() === user?.email.toLowerCase()
                     ? data.newChat.participants[1]
                     : data.newChat.participants[0];
 
@@ -70,7 +71,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
         return () => {
             socket.off("createChat");
         };
-    }, [socket]);
+    }, [socket, user]);
 
     const filteredChats = chatList.filter((chat) =>
         chat.participant.username
@@ -103,7 +104,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
     ): SingleChat[] {
         return chatArray?.map((chat) => {
             const otherParticipant =
-                chat.participants[0].email === userEmail
+                chat.participants[0].email.toLowerCase() === userEmail.toLowerCase()
                     ? chat.participants[1]
                     : chat.participants[0];
             return {
@@ -142,7 +143,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
 
     return (
         <div className="w-full max-w-md mx-auto">
-            <Collapsible open={chatIsOpen} onOpenChange={setchatIsOpen}>
+            <Collapsible open={isChatListOpen} onOpenChange={setChatListOpen}>
                 <CollapsibleTrigger asChild>
                     <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
                         Chat's
@@ -152,7 +153,7 @@ const ChatList: React.FC<ChatListProps> = ({ searchTerm }) => {
                                     {chatList.length}
                                 </span>
                             )}
-                            {chatIsOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                            {isChatListOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
                         </div>
                     </div>
                 </CollapsibleTrigger>

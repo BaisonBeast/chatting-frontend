@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import {
     connectSocket,
     disconnectSocket,
@@ -18,36 +18,39 @@ export const SocketProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ userEmail, children }) => {
     const { setOnlineUsers, chatList } = useChatStore();
+    const [socket, setSocket] = useState<Socket | null>(null);
 
     useEffect(() => {
         let heartbeatInterval: NodeJS.Timeout;
         if (userEmail) {
-            const socket = connectSocket(userEmail);
+            const socketInstance = connectSocket(userEmail);
+            setSocket(socketInstance);
 
             heartbeatInterval = setInterval(() => {
-                if (socket && socket.connected) {
-                    socket.emit("heartbeat", userEmail);
+                if (socketInstance && socketInstance.connected) {
+                    socketInstance.emit("heartbeat", userEmail);
 
                     // Poll for online status of friends
                     if (chatList && chatList.length > 0) {
                         const friendEmails = chatList.map(chat => chat.participant.email);
-                        socket.emit("checkOnlineStatus", friendEmails);
+                        socketInstance.emit("checkOnlineStatus", friendEmails);
                     }
                 }
             }, 5000);
 
-            socket.on("onlineStatusUpdate", (users: string[]) => {
+            socketInstance.on("onlineStatusUpdate", (users: string[]) => {
                 setOnlineUsers(users);
             });
         }
         return () => {
             clearInterval(heartbeatInterval);
             disconnectSocket();
+            setSocket(null);
         };
     }, [userEmail, chatList]);
 
     return (
-        <SocketContext.Provider value={{ socket: getSocket() }}>
+        <SocketContext.Provider value={{ socket }}>
             {children}
         </SocketContext.Provider>
     );
