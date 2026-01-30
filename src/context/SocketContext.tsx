@@ -31,8 +31,10 @@ export const SocketProvider: React.FC<{
                     socketInstance.emit("heartbeat", userEmail);
 
                     // Poll for online status of friends
-                    if (chatList && chatList.length > 0) {
-                        const friendEmails = chatList.map(chat => chat.participant.email);
+                    // Access latest chatList directly from store to avoid dependency cycle
+                    const currentChatList = useChatStore.getState().chatList;
+                    if (currentChatList && currentChatList.length > 0) {
+                        const friendEmails = currentChatList.map(chat => chat.participant.email);
                         socketInstance.emit("checkOnlineStatus", friendEmails);
                     }
                 }
@@ -47,7 +49,7 @@ export const SocketProvider: React.FC<{
             disconnectSocket();
             setSocket(null);
         };
-    }, [userEmail, chatList]);
+    }, [userEmail]); // Removed chatList from dependency to prevent re-connect loop
 
     return (
         <SocketContext.Provider value={{ socket }}>
