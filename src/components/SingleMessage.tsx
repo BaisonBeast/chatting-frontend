@@ -4,13 +4,19 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { PopoverClose } from "@radix-ui/react-popover";
 import {
     MoreVertical,
     Edit2,
     Trash2,
     ThumbsUp,
     AlertTriangle,
+    FileIcon,
+    Download,
+    Video as VideoIcon,
+    Image as ImageIcon
 } from "lucide-react";
+import ConfirmationDialog from "./ConfirmationDialog";
 import moment from "moment";
 import axios from "@/services/api";
 import { useSocket } from "@/context/SocketContext";
@@ -31,6 +37,8 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     const { user, chatList, selectedChat, addLike, deleteMessage } =
         useChatStore();
     const [isHovered, setIsHovered] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Calculate days ago
     const calculateDaysAgo = (isoDate: string) => {
@@ -49,15 +57,21 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
         : "bg-green-50 border-green-200 text-green-900 self-start rounded-br-2xl";
 
     // Handle message delete
-    const handleDeleteMessage = async (id: string) => {
+    const handleDeleteMessage = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDeleteMessage = async () => {
         try {
-            await axios.delete(`/api/messages/delete/${id}`, {
+            setIsDeleting(true);
+            await axios.delete(`/api/messages/delete/${message._id}`, {
                 data: {
                     loggedUserEmail: user?.email,
                     otherSideUserEmail:
                         chatList[selectedChat].participant.email,
                 },
             });
+            setShowDeleteConfirm(false);
             toast({
                 title: "Message Deleted",
                 description: "Your message has been successfully deleted.",
@@ -70,6 +84,8 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                     "Failed to delete message. Please try again later.",
                 variant: "destructive",
             });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -123,10 +139,10 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
     // Render timestamp
     const renderTimestamp = () => {
         const timeFormat = `${day === 0
-                ? "Today at"
-                : day === 1
-                    ? "Yesterday at"
-                    : `${day} days ago at`
+            ? "Today at"
+            : day === 1
+                ? "Yesterday at"
+                : `${day} days ago at`
             } ${moment(message.updatedAt).format("LT")}`;
 
         return (
@@ -157,7 +173,42 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
                         <span className="italic">Message Deleted</span>
                     </div>
                 ) : (
-                    <p className="text-base font-medium">{message.message}</p>
+                    <>
+                        {message.messageType === "image" ? (
+                            <img
+                                src={message.message}
+                                alt="Attachment"
+                                className="rounded-lg max-w-full h-auto cursor-pointer"
+                                onClick={() => window.open(message.message, "_blank")}
+                            />
+                        ) : message.messageType === "video" ? (
+                            <div className="max-w-[300px]">
+                                <video controls className="rounded-lg w-full h-auto">
+                                    <source src={message.message} />
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        ) : message.messageType === "file" ? (
+                            <div className="flex items-center space-x-3 bg-white/50 p-3 rounded-lg min-w-[200px] border border-gray-200">
+                                <FileIcon size={30} className="text-blue-500" />
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="text-sm font-medium truncate w-full">Attachment</p>
+                                    <a
+                                        href={message.message}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download
+                                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center mt-1 font-semibold"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <Download size={12} className="mr-1" /> Download
+                                    </a>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-base font-medium">{message.message}</p>
+                        )}
+                    </>
                 )}
 
                 {/* Timestamp */}
@@ -194,40 +245,53 @@ const SingleMessage: React.FC<SingleMessageProps> = ({ message, id }) => {
             `}
                     >
                         <div className="py-1">
-                            {isOwnMessage && (
-                                <>
-                                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                                        <Edit2
-                                            size={16}
-                                            className="mr-2 text-blue-500"
-                                        />
-                                        Edit Message
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            handleDeleteMessage(message._id)
-                                        }
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-500"
-                                    >
-                                        <Trash2 size={16} className="mr-2" />
-                                        Delete Message
-                                    </button>
-                                </>
-                            )}
-                            <button
-                                onClick={handleLike}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                            >
-                                <ThumbsUp
-                                    size={16}
-                                    className="mr-2 text-blue-500"
-                                />
-                                Like Message
-                            </button>
+                            <PopoverClose className="w-full">
+                                {isOwnMessage && (
+                                    <>
+                                        <div className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center cursor-pointer">
+                                            <Edit2
+                                                size={16}
+                                                className="mr-2 text-blue-500"
+                                            />
+                                            Edit Message
+                                        </div>
+                                        <div
+                                            onClick={() =>
+                                                handleDeleteMessage()
+                                            }
+                                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-500 cursor-pointer"
+                                        >
+                                            <Trash2 size={16} className="mr-2" />
+                                            Delete Message
+                                        </div>
+                                    </>
+                                )}
+                                <div
+                                    onClick={handleLike}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center cursor-pointer"
+                                >
+                                    <ThumbsUp
+                                        size={16}
+                                        className="mr-2 text-blue-500"
+                                    />
+                                    Like Message
+                                </div>
+                            </PopoverClose>
                         </div>
                     </PopoverContent>
                 </Popover>
             )}
+
+            <ConfirmationDialog
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDeleteMessage}
+                title="Delete Message?"
+                description="Are you sure you want to delete this message?"
+                confirmText="Delete"
+                variant="destructive"
+                isLoading={isDeleting}
+            />
         </div>
     );
 };

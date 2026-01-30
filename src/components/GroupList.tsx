@@ -9,7 +9,6 @@ import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import useChatStore from "@/store/useStore";
 import axios from "@/services/api";
 import { API_ROUTES } from "@/utils/ApiRoutes";
-import { Users } from "lucide-react";
 import { useSocket } from "@/context/SocketContext";
 import { useToast } from "@/hooks/use-toast";
 

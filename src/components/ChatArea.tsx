@@ -24,6 +24,7 @@ import { backgroundColors } from "./UpdateUser";
 import { FileVideo, MoreVertical, Paperclip, Trash2, Video, File, Image } from "lucide-react";
 import { API_ROUTES } from "@/utils/ApiRoutes";
 import VideoCall from "./VideoCall";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 
 
@@ -54,6 +55,14 @@ const ChatArea = () => {
     const { toast } = useToast();
     const { socket } = useSocket();
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [fileType, setFileType] = useState<"image" | "video" | "file">("file");
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Video Call State
     const [inCall, setInCall] = useState(false);
@@ -205,6 +214,90 @@ const ChatArea = () => {
         return () => clearTimeout(debounceTimer);
     }, [newMessage]);
 
+    const handleFileSelect = (type: "image" | "video" | "file") => {
+        setFileType(type);
+        if (fileInputRef.current) {
+            // Set accept attribute based on type
+            switch (type) {
+                case "image":
+                    fileInputRef.current.accept = "image/*";
+                    break;
+                case "video":
+                    fileInputRef.current.accept = "video/*";
+                    break;
+                default:
+                    fileInputRef.current.accept = "*"; // generic file
+                    break;
+            }
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 3 * 1024 * 1024) {
+            toast({
+                title: "File too large",
+                description: "File size must be less than 3MB",
+                variant: "destructive",
+            });
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        setSelectedFile(file);
+
+        // Create preview URL if image or video
+        if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+        } else {
+            setPreviewUrl(null);
+        }
+    };
+
+    const handleCancelUpload = () => {
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleSendFile = async () => {
+        if (!selectedFile) return;
+        setIsUploading(true);
+
+        const formData = new FormData();
+        formData.append("messageFile", selectedFile);
+        formData.append("message", selectedFile.name);
+        formData.append("loggedInUser", user?.email || "");
+        formData.append("otherSideUser", selectedChatType === "chat" ? chatList[selectedChat].participant.email : "");
+        formData.append("messageType", fileType);
+
+        try {
+            await axios.post(
+                `${API_ROUTES.MESSAGES.NEW_MESSAGE}/${chatId}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            handleCancelUpload(); // Reset state on success
+        } catch (err: any) {
+            toast({
+                title: "Upload failed",
+                description: err.response?.data?.message || "Please try again.",
+                variant: "destructive",
+            });
+            console.error(err);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleFetchAutoComplete = async () => {
         if (messages.length === 0) return;
         try {
@@ -224,9 +317,14 @@ const ChatArea = () => {
         }
     };
 
-    const handleDeleteChat = async () => {
-        if (selectedChatType !== "chat") return; // Group deletion not implemented yet
+    const handleDeleteChat = () => {
+        if (selectedChatType !== "chat") return;
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDeleteChat = async () => {
         try {
+            setIsDeleting(true);
             const res = await axios.delete(
                 `${API_ROUTES.CHAT.DELETE_CHAT}/${chatId}`,
                 {
@@ -237,6 +335,7 @@ const ChatArea = () => {
                     },
                 }
             );
+            setShowDeleteConfirm(false); // Close dialog on success
         } catch (err: any) {
             if (err.response && err.response.data) {
                 const { message } = err.response.data;
@@ -252,6 +351,8 @@ const ChatArea = () => {
                 });
             }
             console.error(err);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -384,18 +485,20 @@ const ChatArea = () => {
                             >
                                 <PopoverClose className="w-full">
                                     {[
-                                        { icon: Image, label: "Attach Photo" },
-                                        { icon: FileVideo, label: "Attach Video" },
-                                        { icon: File, label: "Attach File" },
+                                        { icon: Image, label: "Attach Photo", type: "image" as const },
+                                        { icon: FileVideo, label: "Attach Video", type: "video" as const },
+                                        { icon: File, label: "Attach File", type: "file" as const },
                                     ].map((item, index) => (
-                                        <div
+                                        <button
                                             key={index}
-                                            className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"
+                                            onClick={() => handleFileSelect(item.type)}
+                                            className="w-full flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"
                                         >
+                                            <item.icon className="w-5 h-5 text-gray-600" />
                                             <span className="text-sm text-gray-700">
                                                 {item.label}
                                             </span>
-                                        </div>
+                                        </button>
                                     ))}
                                 </PopoverClose>
                             </PopoverContent>
@@ -573,6 +676,62 @@ const ChatArea = () => {
                     )}
                 </footer>
             )}
+
+            {/* File Upload Confirmation Modal */}
+            <ConfirmationDialog
+                isOpen={!!selectedFile}
+                onClose={handleCancelUpload}
+                onConfirm={handleSendFile}
+                title="Send Attachment?"
+                confirmText="Send"
+                isLoading={isUploading}
+            >
+                <div className="mb-4 flex justify-center bg-gray-50 rounded-lg p-2 border border-gray-100">
+                    {fileType === "image" && previewUrl ? (
+                        <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="max-h-48 rounded-lg object-contain"
+                        />
+                    ) : fileType === "video" && previewUrl ? (
+                        <video
+                            src={previewUrl}
+                            controls
+                            className="max-h-48 rounded-lg w-full"
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center py-8 px-4 text-gray-500">
+                            <File size={48} className="text-blue-500 mb-2" />
+                            <span className="text-sm font-medium text-center break-all">
+                                {selectedFile?.name}
+                            </span>
+                            <span className="text-xs text-gray-400 mt-1">
+                                {(selectedFile ? selectedFile.size / 1024 / 1024 : 0).toFixed(2)}{" "}
+                                MB
+                            </span>
+                        </div>
+                    )}
+                </div>
+            </ConfirmationDialog>
+
+            {/* Delete Chat Confirmation Modal */}
+            <ConfirmationDialog
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDeleteChat}
+                title="Delete Chat?"
+                description="Are you sure you want to delete this chat? This action cannot be undone."
+                confirmText="Delete"
+                variant="destructive"
+                isLoading={isDeleting}
+            />
+
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+            />
         </div>
     );
 };
