@@ -9,6 +9,9 @@ export const connectSocket = (userEmail: string): Socket => {
     }
     if (!socket.connected) {
         socket.connect();
+        socket.on("connect_error", (err) => {
+            console.error("Socket connection error:", err);
+        });
         socket.emit("join", userEmail);
     }
     return socket;

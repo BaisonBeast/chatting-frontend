@@ -111,8 +111,8 @@ const Sidebar = () => {
                     {/* User Profile */}
                     <Sheet>
                         <SheetTrigger asChild>
-                            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => setUpdateProfileOpen(true)}>
-                                <Avatar className="transition-all group-hover:scale-110">
+                            <div className="flex items-center space-x-2 cursor-pointer group min-w-0" onClick={() => setUpdateProfileOpen(true)}>
+                                <Avatar className="transition-all group-hover:scale-110 flex-shrink-0">
                                     <AvatarImage
                                         src={user?.profilePic}
                                         alt={user?.username}
@@ -122,11 +122,11 @@ const Sidebar = () => {
                                         {getInitials(user?.username)}
                                     </AvatarFallback>
                                 </Avatar>
-                                <div className="hidden md:block">
-                                    <p className="text-sm font-semibold">
+                                <div className="hidden md:block min-w-0">
+                                    <p className="text-sm font-semibold truncate">
                                         {user?.username}
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-500 truncate">
                                         {user?.email}
                                     </p>
                                 </div>
@@ -139,7 +139,7 @@ const Sidebar = () => {
                     </Sheet>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-1 flex-shrink-0">
                         <CreateGroupModal
                             isOpen={isCreateGroupOpen}
                             onClose={() => setIsCreateGroupOpen(false)}
