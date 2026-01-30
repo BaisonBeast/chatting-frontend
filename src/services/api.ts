@@ -22,6 +22,19 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        if (error.response) {
+            const { status } = error.response;
+            if (status === 401 || status === 403) {
+                // Clear storage
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // Redirect to login if not already there
+                if (!window.location.pathname.includes("/login")) {
+                    window.location.href = "/login";
+                }
+            }
+        }
         return Promise.reject(error);
     }
 );
