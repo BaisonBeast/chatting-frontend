@@ -50,7 +50,7 @@ const GroupList = () => {
     }, [socket, groupList]);
 
     return (
-        <div className="w-full max-w-md mx-auto">
+        <div className="w-full">
             <Collapsible open={groupIsOpen} onOpenChange={setGroupIsOpen}>
                 <CollapsibleTrigger asChild>
                     <div className="p-5 bg-slate-50 cursor-pointer text-xl flex justify-between font-semibold">
